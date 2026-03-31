@@ -94,7 +94,7 @@ git tag v<new-version>
 
 ### Step 7: Push commit and tag
 
-**Ask user for confirmation before pushing.** Then:
+Push immediately — do NOT ask for confirmation. The user requested a release, so push is implicit.
 
 ```bash
 git push origin main

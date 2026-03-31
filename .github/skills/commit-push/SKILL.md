@@ -53,7 +53,7 @@ If the user provides a commit message, use it. Otherwise, infer from the changes
 
 ### Step 4: Push
 
-**Ask the user for confirmation before pushing.** Then:
+Push immediately — do NOT ask for confirmation. The user requested a push, so just do it.
 
 ```bash
 git push origin $(git branch --show-current)
