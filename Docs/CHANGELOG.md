@@ -2,6 +2,24 @@
 
 All notable changes to Teams Chat Notifier are documented here, grouped by ISO week (newest first).
 
+## 1.0.0 — 2026-04-01
+
+### Features
+- Theme system with multiple dark themes (Midnight, Carbon, Ocean, Forest, Monokai)
+- Teams & Channels support alongside direct chats
+- App version display in settings
+- Release workflow skill for on-demand patch/minor/major releases
+- Commit & push skill for streamlined CI-validated deployments
+
+### Fixes
+- Removed unused imports to pass CI lint checks (`path`, `unreadCount`, `Channel`, `ThemeId`)
+- Replaced forbidden `require()` with ES module import in window-manager
+
+### CI/CD
+- GitHub Actions CI pipeline (typecheck, lint, unit tests, component tests, coverage)
+- GitHub Actions release pipeline (macOS .dmg + Windows .exe via electron-builder)
+- npm `preversion` hook runs full CI checks before version bumps
+
 ## 0.1.0 — Initial Release
 
 ### Features
