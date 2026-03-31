@@ -16,11 +16,12 @@ const config: Configuration = {
   ],
   mac: {
     category: 'public.app-category.productivity',
+    identity: null,
     target: [
       { target: 'dmg', arch: ['x64', 'arm64'] },
       { target: 'zip', arch: ['x64', 'arm64'] },
     ],
-    hardenedRuntime: true,
+    hardenedRuntime: false,
     gatekeeperAssess: false,
     extendInfo: {
       // Hides from Dock and Cmd+Tab — pure tray app

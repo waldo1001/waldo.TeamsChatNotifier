@@ -43,16 +43,23 @@ jobs:
       - name: Package (macOS)
         run: npm run dist:mac -- --publish never
         env:
-          # Code signing disabled until certificates are configured
           CSC_IDENTITY_AUTO_DISCOVERY: false
-          # Disable notarization in CI until Apple credentials are set up
           SKIP_NOTARIZATION: true
+
+      - name: Ad-hoc codesign (removes 'damaged app' error on Apple Silicon)
+        run: |
+          for app in release/mac*/"Teams Chat Notifier.app"; do
+            echo "Ad-hoc signing: $app"
+            codesign --force --deep -s - "$app"
+          done
 
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
         with:
           name: mac-dist
-          path: release/*.dmg
+          path: |
+            release/*.dmg
+            release/*-mac.zip
           retention-days: 30
 
   build-win:
