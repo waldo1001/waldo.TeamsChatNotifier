@@ -1,0 +1,21 @@
+node_modules/
+dist/
+.env
+*.local
+
+# electron-builder output
+dist/packages/
+
+# Coverage
+coverage/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+.idea/
+
+# Token caches — never commit these
+token-caches/
