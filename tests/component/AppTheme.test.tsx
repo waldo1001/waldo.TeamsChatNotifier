@@ -1,9 +1,9 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import App from '../../src/renderer/App';
 import { useAppStore } from '../../src/renderer/store/app-store';
-import { THEMES, themeIds } from '../../src/shared/themes';
+
 
 // Mock the IPC client
 vi.mock('../../src/renderer/api/ipc-client', () => ({

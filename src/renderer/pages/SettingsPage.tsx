@@ -3,7 +3,6 @@ import { useAppStore } from '../store/app-store';
 import { DeviceCodeModal } from '../components/DeviceCodeModal';
 import { ipc } from '../api/ipc-client';
 import { THEMES, themeIds } from '@shared/themes';
-import type { ThemeId } from '@shared/themes';
 
 export function SettingsPage(): React.ReactElement {
   const { tenants, settings, setSettings, deviceCodeInfo, setDeviceCodeInfo, removeTenant } = useAppStore();
