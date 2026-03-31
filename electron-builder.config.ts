@@ -5,7 +5,7 @@ const config: Configuration = {
   productName: 'Teams Chat Notifier',
   copyright: `Copyright © ${new Date().getFullYear()}`,
   directories: {
-    output: 'dist/packages',
+    output: 'release',
     buildResources: 'assets',
   },
   files: [

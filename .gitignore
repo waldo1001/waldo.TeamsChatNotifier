@@ -4,7 +4,7 @@ dist/
 *.local
 
 # electron-builder output
-dist/packages/
+release/
 
 # Coverage
 coverage/

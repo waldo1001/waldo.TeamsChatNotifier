@@ -52,7 +52,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mac-dist
-          path: dist/packages/*.dmg
+          path: release/*.dmg
           retention-days: 30
 
   build-win:
@@ -80,7 +80,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: win-dist
-          path: dist/packages/*.exe
+          path: release/*.exe
           retention-days: 30
 
   release:
