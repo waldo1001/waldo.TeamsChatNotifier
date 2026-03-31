@@ -2,6 +2,18 @@
 
 All notable changes to Teams Chat Notifier are documented here, grouped by ISO week (newest first).
 
+## 1.0.1 — 2026-04-01
+
+### Fixes
+- Fixed electron-builder not loading config (added explicit `--config` flag)
+- Fixed `dist/` files excluded from app package by moving build output to `release/`
+- Fixed electron-builder auto-publish error in CI (added `--publish never`)
+- Ad-hoc codesign macOS builds to prevent "damaged app" error on Apple Silicon
+
+### CI/CD
+- Upload macOS `.zip` alongside `.dmg` in release artifacts
+- Release workflow now includes ad-hoc codesign step
+
 ## 1.0.0 — 2026-04-01
 
 ### Features
