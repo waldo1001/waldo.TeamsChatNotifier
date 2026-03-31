@@ -2,6 +2,11 @@
 
 All notable changes to Teams Chat Notifier are documented here, grouped by ISO week (newest first).
 
+## 1.0.2 — 2026-04-01
+
+### Fixes
+- Ad-hoc codesign macOS app before DMG creation via `afterPack` hook (fixes "cannot verify" Gatekeeper warning)
+
 ## 1.0.1 — 2026-04-01
 
 ### Fixes

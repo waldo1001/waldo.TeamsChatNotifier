@@ -43,15 +43,7 @@ jobs:
       - name: Package (macOS)
         run: npm run dist:mac -- --publish never
         env:
-          CSC_IDENTITY_AUTO_DISCOVERY: false
           SKIP_NOTARIZATION: true
-
-      - name: Ad-hoc codesign (removes 'damaged app' error on Apple Silicon)
-        run: |
-          for app in release/mac*/"Teams Chat Notifier.app"; do
-            echo "Ad-hoc signing: $app"
-            codesign --force --deep -s - "$app"
-          done
 
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
