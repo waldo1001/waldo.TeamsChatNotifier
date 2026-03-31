@@ -41,7 +41,7 @@ jobs:
         run: npm run build
 
       - name: Package (macOS)
-        run: npm run dist:mac
+        run: npm run dist:mac -- --publish never
         env:
           # Code signing disabled until certificates are configured
           CSC_IDENTITY_AUTO_DISCOVERY: false
@@ -74,7 +74,7 @@ jobs:
         run: npm run build
 
       - name: Package (Windows)
-        run: npm run dist:win
+        run: npm run dist:win -- --publish never
 
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
