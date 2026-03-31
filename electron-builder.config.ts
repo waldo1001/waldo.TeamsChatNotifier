@@ -6,12 +6,20 @@ const config: Configuration = {
   appId: 'com.teamschatnotifier.app',
   productName: 'Teams Chat Notifier',
   copyright: `Copyright © ${new Date().getFullYear()}`,
-  afterPack: async (context) => {
-    // Ad-hoc codesign on macOS to prevent "damaged app" error on Apple Silicon
+  // afterSign runs after electron-builder's own signing step (which is skipped with identity: null),
+  // ensuring no further modifications invalidate our ad-hoc signature before DMG creation.
+  afterSign: async (context) => {
     if (context.electronPlatformName === 'darwin') {
       const appPath = path.join(context.appOutDir, `${context.packager.appInfo.productFilename}.app`);
       console.log(`  • ad-hoc signing  app=${appPath}`);
-      execSync(`codesign --force --deep -s - "${appPath}"`, { stdio: 'inherit' });
+      // Sign all Mach-O binaries and bundles from deepest level up, then sign the .app
+      execSync(
+        `find "${appPath}" -type f -perm +111 -exec codesign --force --sign - {} \\; 2>/dev/null; ` +
+        `find "${appPath}/Contents/Frameworks" -depth -name "*.framework" -exec codesign --force --sign - {} \\; 2>/dev/null; ` +
+        `find "${appPath}/Contents/Frameworks" -depth -name "*.app" -exec codesign --force --sign - {} \\; 2>/dev/null; ` +
+        `codesign --force --sign - "${appPath}"`,
+        { stdio: 'inherit' },
+      );
     }
   },
   directories: {

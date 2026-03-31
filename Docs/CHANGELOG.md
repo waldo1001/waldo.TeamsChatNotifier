@@ -2,6 +2,11 @@
 
 All notable changes to Teams Chat Notifier are documented here, grouped by ISO week (newest first).
 
+## 1.0.3 — 2026-04-01
+
+### Fixes
+- Fixed "app is damaged" error: moved ad-hoc codesign to `afterSign` hook and sign all nested binaries bottom-up before the outer `.app` bundle
+
 ## 1.0.2 — 2026-04-01
 
 ### Fixes
