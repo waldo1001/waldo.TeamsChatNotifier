@@ -43,7 +43,15 @@ jobs:
       - name: Package (macOS)
         run: npm run dist:mac -- --publish never
         env:
-          SKIP_NOTARIZATION: true
+          # When CSC_LINK secret is set, electron-builder signs with the Developer ID certificate.
+          # When not set, the afterSign hook in electron-builder.config.ts does ad-hoc signing.
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          # Notarize only when Apple credentials are available
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          SKIP_NOTARIZATION: ${{ secrets.APPLE_ID == '' }}
 
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
@@ -108,3 +116,22 @@ jobs:
           generate_release_notes: true
           draft: false
           prerelease: ${{ contains(github.ref_name, '-') }}
+          body: |
+            ## Installation
+
+            ### macOS (recommended — no Gatekeeper warnings)
+
+            ```bash
+            curl -fsSL https://raw.githubusercontent.com/waldo1001/waldo.TeamsChatNotifier/main/scripts/install.sh | bash
+            ```
+
+            ### macOS (manual)
+
+            Download the `.dmg` below. macOS will show a security warning because the app is not notarized.
+            To open: **Right-click** the app → **Open** → **Open** (only needed once).
+
+            Or after installing, run: `xattr -cr "/Applications/Teams Chat Notifier.app"`
+
+            ### Windows
+
+            Download and run the `.exe` installer below. Click **More info** → **Run anyway** if SmartScreen appears.

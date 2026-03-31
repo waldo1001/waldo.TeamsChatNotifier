@@ -2,6 +2,19 @@
 
 All notable changes to Teams Chat Notifier are documented here, grouped by ISO week (newest first).
 
+## 1.0.4 — 2026-04-01
+
+### Features
+- One-line macOS install script (`scripts/install.sh`) — downloads and installs without Gatekeeper warnings
+
+### Improvements
+- Release workflow ready for Apple Developer ID signing & notarization (just add GitHub secrets)
+- GitHub Release page now includes installation instructions for macOS and Windows
+
+### CI/CD
+- Conditional notarization: uses real certificate when `CSC_LINK` secret is set, falls back to ad-hoc signing
+- Release body includes install instructions and `xattr -cr` workaround
+
 ## 1.0.3 — 2026-04-01
 
 ### Fixes
