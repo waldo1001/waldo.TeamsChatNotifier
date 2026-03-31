@@ -11,6 +11,9 @@ interface MessageRow {
   created_at: string;
   is_system_message: number;
   notified: number;
+  channel_id: string | null;
+  team_id: string | null;
+  parent_message_id: string | null;
 }
 
 function rowToMessage(row: MessageRow): Message {
@@ -24,6 +27,9 @@ function rowToMessage(row: MessageRow): Message {
     createdAt: row.created_at,
     isSystemMessage: row.is_system_message === 1,
     notified: row.notified === 1,
+    channelId: row.channel_id,
+    teamId: row.team_id,
+    parentMessageId: row.parent_message_id,
   };
 }
 
@@ -40,8 +46,9 @@ export class MessageRepository {
       .prepare(
         `INSERT INTO messages (
           id, chat_id, tenant_id, sender_id, sender_display_name,
-          body_content, created_at, is_system_message, notified
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          body_content, created_at, is_system_message, notified,
+          channel_id, team_id, parent_message_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id, tenant_id) DO UPDATE SET
           body_content        = excluded.body_content,
           sender_display_name = excluded.sender_display_name,
@@ -57,6 +64,9 @@ export class MessageRepository {
         message.createdAt,
         message.isSystemMessage ? 1 : 0,
         message.notified ? 1 : 0,
+        message.channelId ?? null,
+        message.teamId ?? null,
+        message.parentMessageId ?? null,
       );
   }
 

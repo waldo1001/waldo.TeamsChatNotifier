@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAppStore } from '../store/app-store';
 import { DeviceCodeModal } from '../components/DeviceCodeModal';
 import { ipc } from '../api/ipc-client';
+import { THEMES, themeIds } from '@shared/themes';
+import type { ThemeId } from '@shared/themes';
 
 export function SettingsPage(): React.ReactElement {
   const { tenants, settings, setSettings, deviceCodeInfo, setDeviceCodeInfo, removeTenant } = useAppStore();
@@ -133,6 +135,37 @@ export function SettingsPage(): React.ReactElement {
       </section>
 
       <section style={styles.section}>
+        <h3 style={styles.sectionTitle}>Appearance</h3>
+        <div style={styles.themeGrid}>
+          {themeIds.map(id => {
+            const t = THEMES[id];
+            const active = settings.theme === id;
+            return (
+              <button
+                key={id}
+                aria-label={`Theme: ${t.label}`}
+                style={{
+                  ...styles.themeCard,
+                  borderColor: active ? t.colors.navActiveText : t.colors.border,
+                  backgroundColor: t.colors.bg,
+                }}
+                onClick={() => updateSetting('theme', id)}
+              >
+                <div style={{ display: 'flex', gap: '3px', marginBottom: '6px' }}>
+                  <span style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: t.colors.navActiveText }} />
+                  <span style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: t.colors.accent }} />
+                  <span style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: t.colors.textMuted }} />
+                </div>
+                <span style={{ fontSize: '11px', color: t.colors.text, fontWeight: active ? 700 : 500 }}>
+                  {t.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <section style={styles.section}>
         <h3 style={styles.sectionTitle}>System</h3>
         <label style={styles.toggle}>
           <span>Launch at login</span>
@@ -233,5 +266,21 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '12px',
     color: '#505070',
     margin: '0 0 12px',
+  },
+  themeGrid: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '8px',
+  },
+  themeCard: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '12px 8px',
+    borderRadius: '8px',
+    border: '2px solid',
+    cursor: 'pointer',
+    transition: 'border-color 0.15s',
   },
 };

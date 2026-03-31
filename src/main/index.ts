@@ -1,6 +1,5 @@
 import 'dotenv/config';
 import { app, shell } from 'electron';
-import path from 'path';
 import Store from 'electron-store';
 
 import { WindowManager } from './window-manager';
@@ -10,17 +9,23 @@ import { getDatabase, pruneOldMessages } from './db/database';
 import { TenantRepository } from './db/repositories/tenant-repo';
 import { ChatRepository } from './db/repositories/chat-repo';
 import { MessageRepository } from './db/repositories/message-repo';
+import { TeamRepository } from './db/repositories/team-repo';
+import { ChannelRepository } from './db/repositories/channel-repo';
 import { PollScheduler } from './polling/poll-scheduler';
 import { NotificationManager } from './notifications/notification-manager';
 import { registerIpcHandlers } from './ipc/ipc-main-handler';
 import { ChatsApi } from './graph/chats-api';
 import { MessagesApi } from './graph/messages-api';
+import { TeamsApi } from './graph/teams-api';
 import { createGraphClient } from './graph/graph-client-factory';
 import {
   detectChangedChats,
+  detectChangedChannelMessages,
   shouldNotify,
   buildChatFromGraphResponse,
   buildMessageFromGraphResponse,
+  buildChannelFromGraphResponse,
+  buildMessageFromChannelResponse,
 } from './polling/poll-worker';
 import { DEFAULT_SETTINGS } from '../shared/types';
 import { IPC } from '../shared/ipc-channels';
@@ -65,6 +70,8 @@ const db = getDatabase(app.getPath('userData'));
 const tenantRepo = new TenantRepository(db);
 const chatRepo = new ChatRepository(db);
 const messageRepo = new MessageRepository(db);
+const teamRepo = new TeamRepository(db);
+const channelRepo = new ChannelRepository(db);
 
 // ── Poll function ─────────────────────────────────────────────────────────────
 async function pollTenant(tenantId: string): Promise<void> {
@@ -81,6 +88,7 @@ async function pollTenant(tenantId: string): Promise<void> {
     const graphClient = createGraphClient(() => Promise.resolve(token));
     const chatsApi = new ChatsApi(graphClient);
     const messagesApi = new MessagesApi(graphClient);
+    const teamsApi = new TeamsApi(graphClient);
 
     // Phase 1: fetch chat list
     const graphChats = await chatsApi.listChats();
@@ -96,8 +104,6 @@ async function pollTenant(tenantId: string): Promise<void> {
       const chat = buildChatFromGraphResponse(graphChat, tenantId);
       chatRepo.upsert(chat);
     }
-
-    let unreadCount = 0;
 
     // Phase 3: fetch messages for changed chats
     const lastPolledMap = store.get('lastPolledAt') as Record<string, string>;
@@ -126,7 +132,6 @@ async function pollTenant(tenantId: string): Promise<void> {
                 }
               });
               messageRepo.markNotified(message.id, tenantId);
-              unreadCount++;
             }
           }
         }
@@ -137,6 +142,155 @@ async function pollTenant(tenantId: string): Promise<void> {
 
       // Update last polled timestamp for this chat
       lastPolledMap[`${tenantId}:${graphChat.id}`] = now;
+    }
+
+    // ── Phase 4: Poll channel threads across all joined teams ────────────
+    try {
+      const graphTeams = await teamsApi.listJoinedTeams();
+
+      for (const graphTeam of graphTeams) {
+        // Upsert team
+        teamRepo.upsert({
+          id: graphTeam.id,
+          displayName: graphTeam.displayName ?? '',
+          tenantId,
+        });
+
+        let channels;
+        try {
+          channels = await teamsApi.listChannels(graphTeam.id);
+        } catch (err) {
+          console.warn(`[poll] Failed to list channels for team ${graphTeam.id}:`, err);
+          continue;
+        }
+
+        for (const graphChannel of channels) {
+          // Upsert channel
+          const channel = buildChannelFromGraphResponse(graphChannel, graphTeam.id, tenantId);
+          channelRepo.upsert(channel);
+
+          const channelKey = `${tenantId}:team:${graphTeam.id}:ch:${graphChannel.id}`;
+          const channelLastPolled = lastPolledMap[channelKey] ?? firstRunCutoff;
+
+          try {
+            // Fetch root channel messages
+            const channelMessages = await teamsApi.listChannelMessages(
+              graphTeam.id,
+              graphChannel.id,
+              channelLastPolled,
+            );
+
+            const newMessages = detectChangedChannelMessages(channelMessages, channelLastPolled);
+
+            for (const rawMsg of newMessages) {
+              const message = buildMessageFromChannelResponse(
+                rawMsg,
+                graphChannel.id,
+                graphTeam.id,
+                tenantId,
+              );
+              const alreadyNotified = messageRepo.isNotified(message.id, tenantId);
+              messageRepo.upsert(message);
+
+              if (shouldNotify(rawMsg, tenant.userId, alreadyNotified)) {
+                const teamName = graphTeam.displayName ?? 'Team';
+                const channelName = graphChannel.displayName ?? 'Channel';
+                notificationManager.notify(
+                  message,
+                  {
+                    id: graphChannel.id,
+                    tenantId,
+                    chatType: 'group',
+                    topic: `${teamName} › ${channelName}`,
+                    memberNames: [],
+                    lastMessagePreviewText: message.bodyContent,
+                    lastMessagePreviewSender: message.senderDisplayName,
+                    lastMessageAt: message.createdAt,
+                    lastReadAt: null,
+                    isHidden: false,
+                    webUrl: graphChannel.webUrl ?? null,
+                    lastPolledAt: null,
+                    updatedAt: now,
+                  },
+                  tenant,
+                  () => {
+                    if (graphChannel.webUrl) {
+                      shell.openExternal(graphChannel.webUrl);
+                    }
+                  },
+                );
+                messageRepo.markNotified(message.id, tenantId);
+              }
+
+              // Also fetch replies for this thread root message
+              try {
+                const replies = await teamsApi.listMessageReplies(
+                  graphTeam.id,
+                  graphChannel.id,
+                  rawMsg.id,
+                  channelLastPolled,
+                );
+
+                for (const rawReply of replies) {
+                  if (rawReply.messageType !== 'message') continue;
+                  const reply = buildMessageFromChannelResponse(
+                    rawReply,
+                    graphChannel.id,
+                    graphTeam.id,
+                    tenantId,
+                  );
+                  const replyNotified = messageRepo.isNotified(reply.id, tenantId);
+                  messageRepo.upsert(reply);
+
+                  if (shouldNotify(rawReply, tenant.userId, replyNotified)) {
+                    const teamName = graphTeam.displayName ?? 'Team';
+                    const channelName = graphChannel.displayName ?? 'Channel';
+                    notificationManager.notify(
+                      reply,
+                      {
+                        id: graphChannel.id,
+                        tenantId,
+                        chatType: 'group',
+                        topic: `${teamName} › ${channelName} (thread)`,
+                        memberNames: [],
+                        lastMessagePreviewText: reply.bodyContent,
+                        lastMessagePreviewSender: reply.senderDisplayName,
+                        lastMessageAt: reply.createdAt,
+                        lastReadAt: null,
+                        isHidden: false,
+                        webUrl: graphChannel.webUrl ?? null,
+                        lastPolledAt: null,
+                        updatedAt: now,
+                      },
+                      tenant,
+                      () => {
+                        if (graphChannel.webUrl) {
+                          shell.openExternal(graphChannel.webUrl);
+                        }
+                      },
+                    );
+                    messageRepo.markNotified(reply.id, tenantId);
+                  }
+                }
+              } catch (err) {
+                // Reply fetch errors don't abort this thread
+                console.warn(`[poll] Failed to fetch replies for message ${rawMsg.id}:`, err);
+              }
+            }
+          } catch (err) {
+            console.warn(
+              `[poll] Failed to fetch channel messages for ${graphTeam.id}/${graphChannel.id}:`,
+              err,
+            );
+          }
+
+          // Update last polled timestamp for this channel
+          lastPolledMap[channelKey] = now;
+        }
+      }
+    } catch (err) {
+      // Team/channel polling failure doesn't abort the whole poll cycle
+      console.warn(`[poll] Failed to poll teams/channels for tenant ${tenantId}:`, err);
     }
 
     // Persist updated timestamps
@@ -156,15 +310,33 @@ async function pollTenant(tenantId: string): Promise<void> {
 
   } catch (err) {
     console.error(`[poll] Error for tenant ${tenantId}:`, err);
+
+    // Detect consent/interaction-required errors — stop polling and prompt re-auth
+    const isConsentRequired =
+      err instanceof Error &&
+      ('errorCode' in err || 'subError' in err) &&
+      (String((err as Record<string, unknown>).subError) === 'consent_required' ||
+       String((err as Record<string, unknown>).errorCode) === 'interaction_required' ||
+       String((err as Record<string, unknown>).errorCode) === 'invalid_grant');
+
+    if (isConsentRequired) {
+      console.warn(`[poll] Consent required for tenant ${tenantId} — stopping poll, re-auth needed`);
+      scheduler.stop(tenantId);
+    }
+
     windowManager.sendToRenderer(IPC.PUSH_SYNC_STATUS, {
       tenantId,
       status: 'error',
-      errorMessage: err instanceof Error ? err.message : String(err),
+      errorMessage: isConsentRequired
+        ? 'New permissions required. Please sign out and sign back in.'
+        : (err instanceof Error ? err.message : String(err)),
     });
     windowManager.sendToRenderer(IPC.PUSH_TENANT_AUTH_STATE, {
       tenantId,
       status: 'error',
-      errorMessage: err instanceof Error ? err.message : String(err),
+      errorMessage: isConsentRequired
+        ? 'New permissions required. Please sign out and sign back in.'
+        : (err instanceof Error ? err.message : String(err)),
     });
   }
 }

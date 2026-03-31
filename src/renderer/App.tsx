@@ -3,10 +3,12 @@ import { ChatsPage } from './pages/ChatsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { useChats } from './hooks/useChats';
 import { useAppStore } from './store/app-store';
+import { getTheme } from '@shared/themes';
+import type { ThemeColors } from '@shared/themes';
 
 type Page = 'chats' | 'settings';
 
-function StatusBar(): React.ReactElement {
+function StatusBar({ colors }: { colors: ThemeColors }): React.ReactElement {
   const { tenants, syncingTenants, errorTenants } = useAppStore();
   const syncing = syncingTenants.size > 0;
   const hasErrors = Object.keys(errorTenants).length > 0;
@@ -14,91 +16,84 @@ function StatusBar(): React.ReactElement {
   if (tenants.length === 0) return <></>;
 
   return (
-    <div style={styles.statusBar}>
-      {syncing && <span style={styles.syncing}>⟳ Syncing…</span>}
-      {hasErrors && !syncing && <span style={styles.error}>⚠ Sync error</span>}
-      {!syncing && !hasErrors && <span style={styles.ok}>● Live</span>}
+    <div style={{ padding: '3px 14px', fontSize: '11px', backgroundColor: colors.statusBarBg, borderBottom: `1px solid ${colors.statusBarBorder}`, flexShrink: 0 }}>
+      {syncing && <span style={{ color: colors.navActiveText }}>⟳ Syncing…</span>}
+      {hasErrors && !syncing && <span style={{ color: '#c06060' }}>⚠ Sync error</span>}
+      {!syncing && !hasErrors && <span style={{ color: '#507050' }}>● Live</span>}
     </div>
   );
 }
 
 export default function App(): React.ReactElement {
   const [page, setPage] = useState<Page>('chats');
+  const { settings } = useAppStore();
+  const theme = getTheme(settings.theme);
+  const c = theme.colors;
 
   // Wire up all IPC subscriptions
   useChats();
 
   return (
-    <div style={styles.container}>
-      <nav style={styles.nav}>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100vh',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      fontSize: '14px',
+      backgroundColor: c.bg,
+      color: c.text,
+      overflow: 'hidden',
+    }}>
+      <nav style={{
+        display: 'flex',
+        borderBottom: `1px solid ${c.border}`,
+        backgroundColor: c.navBg,
+        flexShrink: 0,
+      }}>
         <button
-          style={{ ...styles.navBtn, ...(page === 'chats' ? styles.navBtnActive : {}) }}
+          style={{
+            flex: 1,
+            padding: '12px',
+            background: 'none',
+            border: 'none',
+            color: page === 'chats' ? c.navActiveText : c.navText,
+            cursor: 'pointer',
+            fontSize: '13px',
+            fontWeight: 500,
+            borderBottom: page === 'chats' ? `2px solid ${c.navActiveBorder}` : '2px solid transparent',
+          }}
           onClick={() => setPage('chats')}
         >
           Chats
         </button>
         <button
-          style={{ ...styles.navBtn, ...(page === 'settings' ? styles.navBtnActive : {}) }}
+          style={{
+            flex: 1,
+            padding: '12px',
+            background: 'none',
+            border: 'none',
+            color: page === 'settings' ? c.navActiveText : c.navText,
+            cursor: 'pointer',
+            fontSize: '13px',
+            fontWeight: 500,
+            borderBottom: page === 'settings' ? `2px solid ${c.navActiveBorder}` : '2px solid transparent',
+          }}
           onClick={() => setPage('settings')}
         >
           Settings
         </button>
       </nav>
 
-      <StatusBar />
+      <StatusBar colors={c} />
 
-      <main style={styles.main}>
+      <main style={{
+        flex: 1,
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+      }}>
         {page === 'chats' ? <ChatsPage /> : <SettingsPage />}
       </main>
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100vh',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-    fontSize: '14px',
-    backgroundColor: '#1a1a2e',
-    color: '#e0e0e0',
-    overflow: 'hidden',
-  },
-  nav: {
-    display: 'flex',
-    borderBottom: '1px solid #2d2d4e',
-    backgroundColor: '#16213e',
-    flexShrink: 0,
-  },
-  navBtn: {
-    flex: 1,
-    padding: '12px',
-    background: 'none',
-    border: 'none',
-    color: '#9090b0',
-    cursor: 'pointer',
-    fontSize: '13px',
-    fontWeight: 500,
-  },
-  navBtnActive: {
-    color: '#6c8ebf',
-    borderBottom: '2px solid #6c8ebf',
-  },
-  main: {
-    flex: 1,
-    overflow: 'hidden',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  statusBar: {
-    padding: '3px 14px',
-    fontSize: '11px',
-    backgroundColor: '#12122a',
-    borderBottom: '1px solid #1e1e3a',
-    flexShrink: 0,
-  },
-  syncing: { color: '#6080c0' },
-  error: { color: '#c06060' },
-  ok: { color: '#507050' },
-};

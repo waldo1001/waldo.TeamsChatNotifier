@@ -4,8 +4,12 @@ import {
   shouldNotify,
   buildMessageFromGraphResponse,
   buildChatFromGraphResponse,
+  buildChannelFromGraphResponse,
+  buildMessageFromChannelResponse,
+  detectChangedChannelMessages,
 } from '../../../../src/main/polling/poll-worker';
 import type { Chat } from '../../../../src/shared/types';
+import type { GraphChannelMessage, GraphChannel } from '../../../../src/main/polling/poll-worker';
 
 // ── detectChangedChats ──────────────────────────────────────────────────────
 
@@ -264,5 +268,139 @@ describe('buildChatFromGraphResponse', () => {
     };
     const chat = buildChatFromGraphResponse(raw, 'tenant-1');
     expect(chat.isHidden).toBe(true);
+  });
+});
+
+// ── buildChannelFromGraphResponse ───────────────────────────────────────────
+
+describe('buildChannelFromGraphResponse', () => {
+  it('maps basic fields from a standard channel', () => {
+    const raw: GraphChannel = {
+      id: 'ch-1',
+      displayName: 'General',
+      webUrl: 'https://teams.microsoft.com/l/channel/ch-1',
+      membershipType: 'standard',
+    };
+    const channel = buildChannelFromGraphResponse(raw, 'team-1', 'tenant-1');
+    expect(channel.id).toBe('ch-1');
+    expect(channel.teamId).toBe('team-1');
+    expect(channel.tenantId).toBe('tenant-1');
+    expect(channel.displayName).toBe('General');
+    expect(channel.webUrl).toBe('https://teams.microsoft.com/l/channel/ch-1');
+    expect(channel.membershipType).toBe('standard');
+  });
+
+  it('handles missing optional fields', () => {
+    const raw: GraphChannel = {
+      id: 'ch-2',
+    };
+    const channel = buildChannelFromGraphResponse(raw, 'team-1', 'tenant-1');
+    expect(channel.displayName).toBe('');
+    expect(channel.webUrl).toBeNull();
+    expect(channel.membershipType).toBe('standard');
+  });
+});
+
+// ── buildMessageFromChannelResponse ─────────────────────────────────────────
+
+describe('buildMessageFromChannelResponse', () => {
+  it('maps channel message fields including channelId and teamId', () => {
+    const raw: GraphChannelMessage = {
+      id: 'msg-ch-1',
+      messageType: 'message',
+      from: { user: { id: 'user-1', displayName: 'Alice' } },
+      body: { content: 'Thread root', contentType: 'text' },
+      createdDateTime: '2024-06-15T10:00:00.000Z',
+    };
+    const msg = buildMessageFromChannelResponse(raw, 'ch-1', 'team-1', 'tenant-1');
+    expect(msg.id).toBe('msg-ch-1');
+    expect(msg.chatId).toBe('ch-1');
+    expect(msg.tenantId).toBe('tenant-1');
+    expect(msg.channelId).toBe('ch-1');
+    expect(msg.teamId).toBe('team-1');
+    expect(msg.bodyContent).toBe('Thread root');
+    expect(msg.parentMessageId).toBeNull();
+    expect(msg.notified).toBe(false);
+  });
+
+  it('maps parentMessageId for thread replies', () => {
+    const raw: GraphChannelMessage = {
+      id: 'reply-1',
+      messageType: 'message',
+      from: { user: { id: 'user-2', displayName: 'Bob' } },
+      body: { content: 'A reply!', contentType: 'text' },
+      createdDateTime: '2024-06-15T10:05:00.000Z',
+      replyToId: 'msg-ch-1',
+    };
+    const msg = buildMessageFromChannelResponse(raw, 'ch-1', 'team-1', 'tenant-1');
+    expect(msg.parentMessageId).toBe('msg-ch-1');
+  });
+
+  it('strips HTML from body content', () => {
+    const raw: GraphChannelMessage = {
+      id: 'msg-html',
+      messageType: 'message',
+      from: { user: { id: 'user-1', displayName: 'Alice' } },
+      body: { content: '<p>Bold <b>text</b></p>', contentType: 'html' },
+      createdDateTime: '2024-06-15T10:00:00.000Z',
+    };
+    const msg = buildMessageFromChannelResponse(raw, 'ch-1', 'team-1', 'tenant-1');
+    expect(msg.bodyContent).toBe('Bold text');
+  });
+
+  it('marks system messages as isSystemMessage', () => {
+    const raw: GraphChannelMessage = {
+      id: 'msg-sys',
+      messageType: 'systemEventMessage',
+      from: null,
+      body: { content: 'User joined', contentType: 'text' },
+      createdDateTime: '2024-06-15T10:00:00.000Z',
+    };
+    const msg = buildMessageFromChannelResponse(raw, 'ch-1', 'team-1', 'tenant-1');
+    expect(msg.isSystemMessage).toBe(true);
+  });
+});
+
+// ── detectChangedChannelMessages ────────────────────────────────────────────
+
+describe('detectChangedChannelMessages', () => {
+  it('returns messages newer than the given cutoff', () => {
+    const messages: GraphChannelMessage[] = [
+      { id: 'msg-1', createdDateTime: '2024-06-15T11:00:00.000Z', messageType: 'message' },
+      { id: 'msg-2', createdDateTime: '2024-06-15T09:00:00.000Z', messageType: 'message' },
+    ];
+    const result = detectChangedChannelMessages(messages, '2024-06-15T10:00:00.000Z');
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe('msg-1');
+  });
+
+  it('returns empty array when all messages are older than cutoff', () => {
+    const messages: GraphChannelMessage[] = [
+      { id: 'msg-1', createdDateTime: '2024-06-15T08:00:00.000Z', messageType: 'message' },
+    ];
+    const result = detectChangedChannelMessages(messages, '2024-06-15T10:00:00.000Z');
+    expect(result).toHaveLength(0);
+  });
+
+  it('returns empty array for empty messages list', () => {
+    expect(detectChangedChannelMessages([], '2024-06-15T10:00:00.000Z')).toHaveLength(0);
+  });
+
+  it('excludes system event messages', () => {
+    const messages: GraphChannelMessage[] = [
+      { id: 'msg-1', createdDateTime: '2024-06-15T11:00:00.000Z', messageType: 'systemEventMessage' },
+      { id: 'msg-2', createdDateTime: '2024-06-15T11:00:00.000Z', messageType: 'message' },
+    ];
+    const result = detectChangedChannelMessages(messages, '2024-06-15T10:00:00.000Z');
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe('msg-2');
+  });
+
+  it('handles messages with missing createdDateTime gracefully', () => {
+    const messages: GraphChannelMessage[] = [
+      { id: 'msg-1', messageType: 'message' },
+    ];
+    const result = detectChangedChannelMessages(messages, '2024-06-15T10:00:00.000Z');
+    expect(result).toHaveLength(0);
   });
 });

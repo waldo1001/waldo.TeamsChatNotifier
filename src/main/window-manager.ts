@@ -1,7 +1,7 @@
 import { BrowserWindow, shell, nativeImage, app } from 'electron';
 import path from 'path';
 
-const isDev = !require('electron').app.isPackaged;
+const isDev = !app.isPackaged;
 
 export class WindowManager {
   private win: BrowserWindow | null = null;
@@ -20,6 +20,7 @@ export class WindowManager {
       minHeight: 500,
       show: false,
       frame: true,
+      backgroundColor: '#121220',
       icon: nativeImage.createFromPath(iconPath),
       webPreferences: {
         nodeIntegration: false,

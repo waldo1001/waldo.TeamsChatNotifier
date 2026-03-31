@@ -35,6 +35,25 @@ export interface Message {
   createdAt: string;        // ISO 8601
   isSystemMessage: boolean;
   notified: boolean;
+  channelId?: string | null;       // set when message comes from a channel
+  teamId?: string | null;          // set when message comes from a channel
+  parentMessageId?: string | null; // set for thread replies
+}
+
+export interface Team {
+  id: string;
+  displayName: string;
+  tenantId: string;
+}
+
+export interface Channel {
+  id: string;
+  teamId: string;
+  tenantId: string;
+  displayName: string;
+  webUrl: string | null;
+  membershipType: string;  // 'standard' | 'private' | 'shared'
+  lastPolledAt: string | null;
 }
 
 export interface AppSettings {
@@ -43,6 +62,7 @@ export interface AppSettings {
   launchAtLogin: boolean;                   // default: true
   showMessagePreviewInNotification: boolean; // default: true
   showHiddenChats: boolean;                 // default: false
+  theme: import('./themes').ThemeId;        // default: 'midnight'
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -51,6 +71,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   launchAtLogin: true,
   showMessagePreviewInNotification: true,
   showHiddenChats: false,
+  theme: 'midnight',
 };
 
 export type AuthStatus = 'signed-in' | 'signing-in' | 'error' | 'signing-out';

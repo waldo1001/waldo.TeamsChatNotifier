@@ -1,5 +1,5 @@
 import { stripHtml } from '../../shared/deep-links';
-import type { Chat, Message } from '../../shared/types';
+import type { Chat, Message, Channel } from '../../shared/types';
 
 // ── Types for Graph API responses ──────────────────────────────────────────
 
@@ -26,6 +26,23 @@ export interface GraphChat {
     isHidden?: boolean;
   } | null;
   members?: Array<{ displayName?: string; [key: string]: unknown }>;
+}
+
+export interface GraphChannel {
+  id: string;
+  displayName?: string;
+  webUrl?: string;
+  membershipType?: string;
+}
+
+export interface GraphChannelMessage {
+  id: string;
+  messageType?: string;
+  from?: { user?: { id?: string; displayName?: string } | null } | null;
+  body?: { content?: string; contentType?: string };
+  createdDateTime?: string;
+  lastModifiedDateTime?: string;
+  replyToId?: string | null;
 }
 
 // ── Pure functions ─────────────────────────────────────────────────────────
@@ -123,4 +140,68 @@ export function buildChatFromGraphResponse(
     lastPolledAt: null,
     updatedAt: new Date().toISOString(),
   };
+}
+
+/**
+ * Map a raw Graph API channel response to our internal Channel type.
+ */
+export function buildChannelFromGraphResponse(
+  raw: GraphChannel,
+  teamId: string,
+  tenantId: string,
+): Channel {
+  return {
+    id: raw.id,
+    teamId,
+    tenantId,
+    displayName: raw.displayName ?? '',
+    webUrl: raw.webUrl ?? null,
+    membershipType: raw.membershipType ?? 'standard',
+    lastPolledAt: null,
+  };
+}
+
+/**
+ * Map a raw Graph API channel message/reply to our internal Message type,
+ * including the channel-specific fields (channelId, teamId, parentMessageId).
+ */
+export function buildMessageFromChannelResponse(
+  raw: GraphChannelMessage,
+  channelId: string,
+  teamId: string,
+  tenantId: string,
+): Message {
+  const rawContent = raw.body?.content ?? '';
+  const contentType = raw.body?.contentType ?? 'text';
+  const bodyContent = contentType === 'html' ? stripHtml(rawContent) : rawContent;
+
+  return {
+    id: raw.id,
+    chatId: channelId,
+    tenantId,
+    senderId: raw.from?.user?.id ?? null,
+    senderDisplayName: raw.from?.user?.displayName ?? null,
+    bodyContent,
+    createdAt: raw.createdDateTime ?? new Date().toISOString(),
+    isSystemMessage: raw.messageType !== 'message',
+    notified: false,
+    channelId,
+    teamId,
+    parentMessageId: raw.replyToId ?? null,
+  };
+}
+
+/**
+ * Filter channel messages to only new, non-system messages after the given cutoff.
+ */
+export function detectChangedChannelMessages(
+  messages: GraphChannelMessage[],
+  lastPolledIso: string,
+): GraphChannelMessage[] {
+  return messages.filter(msg => {
+    if (msg.messageType !== 'message') return false;
+    const ts = msg.createdDateTime;
+    if (!ts) return false;
+    return ts > lastPolledIso;
+  });
 }

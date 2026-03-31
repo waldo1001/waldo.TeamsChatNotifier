@@ -22,7 +22,10 @@
     "test:component": "vitest run --config vitest.config.ts",
     "test:coverage": "vitest run --config vitest.config.main.ts --coverage",
     "test": "npm run test:unit && npm run test:component",
-    "test:watch": "vitest --config vitest.config.main.ts"
+    "test:watch": "vitest --config vitest.config.main.ts",
+    "preversion": "npm run typecheck && npm run lint && npm run test",
+    "version": "echo \"Version bumped to $(node -p \"require('./package.json').version\")\"",
+    "postversion": "echo \"Run 'git push origin main --follow-tags' to trigger the release workflow\""
   },
   "dependencies": {
     "@azure/msal-node": "^2.16.2",

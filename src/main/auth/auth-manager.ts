@@ -3,7 +3,10 @@ import type { AccountInfo } from '@azure/msal-node';
 import type { DeviceCodeResponse } from '@azure/msal-common';
 import { createCachePlugin, deleteCacheFile, persistCacheToFile } from './token-cache';
 
-const SCOPES = ['Chat.ReadBasic', 'Chat.Read', 'User.Read', 'offline_access'];
+const SCOPES = [
+  'Chat.ReadBasic', 'Chat.Read', 'User.Read', 'offline_access',
+  'Team.ReadBasic.All', 'Channel.ReadBasic.All', 'ChannelMessage.Read.All',
+];
 
 // Critical: device code flow must NOT use /common — causes AADSTS90133.
 // Use /organizations for initial auth (work/school accounts), then re-register
