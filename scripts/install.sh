@@ -29,9 +29,9 @@ VERSION="${TAG#v}"
 echo "📦 Latest version: $VERSION"
 
 # ── Build download URL ───────────────────────────────────────────────────────
-ZIP_NAME="${APP_NAME}-${VERSION}-${ARCH_SUFFIX}.zip"
-# GitHub release asset URLs use URL-encoded spaces (%20)
-ZIP_URL="https://github.com/$REPO/releases/download/$TAG/$(echo "$ZIP_NAME" | sed 's/ /%20/g')"
+# GitHub artifact uploads convert spaces to dots in filenames
+ZIP_NAME="$(echo "$APP_NAME" | tr ' ' '.')-${VERSION}-${ARCH_SUFFIX}.zip"
+ZIP_URL="https://github.com/$REPO/releases/download/$TAG/$ZIP_NAME"
 echo "⬇️  Downloading $ZIP_NAME..."
 
 # ── Download and extract ─────────────────────────────────────────────────────
