@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Chat } from '@shared/types';
+import { isUnread } from '@shared/deep-links';
 
 interface Props {
   chat: Chat;
@@ -31,11 +32,6 @@ function getChatName(chat: Chat, currentUserDisplayName: string): string {
   return others.join(', ') || chat.memberNames.join(', ');
 }
 
-function isUnread(chat: Chat): boolean {
-  if (!chat.lastMessageAt) return false;
-  if (!chat.lastReadAt) return true;
-  return chat.lastMessageAt > chat.lastReadAt;
-}
 
 export function ChatListItem({ chat, currentUserDisplayName, onOpen, onOpenWeb }: Props): React.ReactElement {
   const chatName = getChatName(chat, currentUserDisplayName);

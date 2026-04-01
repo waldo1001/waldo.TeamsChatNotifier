@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { Tenant, Chat } from '@shared/types';
+import { isUnread } from '@shared/deep-links';
 import { ChatListItem } from './ChatListItem';
 
 interface Props {
@@ -13,11 +14,7 @@ interface Props {
 }
 
 function countUnread(chats: Chat[]): number {
-  return chats.filter(c => {
-    if (!c.lastMessageAt) return false;
-    if (!c.lastReadAt) return true;
-    return c.lastMessageAt > c.lastReadAt;
-  }).length;
+  return chats.filter(isUnread).length;
 }
 
 export function TenantSection({

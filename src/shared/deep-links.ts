@@ -83,7 +83,7 @@ export function sortChatsUnreadFirst(chats: Chat[]): Chat[] {
   });
 }
 
-function isUnread(chat: Chat): boolean {
+export function isUnread(chat: Chat): boolean {
   if (!chat.lastMessageAt) return false;
   if (!chat.lastReadAt) return true;
   return chat.lastMessageAt > chat.lastReadAt;

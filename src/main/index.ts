@@ -29,7 +29,7 @@ import {
 } from './polling/poll-worker';
 import { DEFAULT_SETTINGS } from '../shared/types';
 import { IPC } from '../shared/ipc-channels';
-import { teamsAppLink } from '../shared/deep-links';
+import { isUnread, teamsAppLink } from '../shared/deep-links';
 import type { AppSettings } from '../shared/types';
 
 // ── App single-instance lock ────────────────────────────────────────────────
@@ -61,6 +61,7 @@ const store = new Store<StoreSchema>({
 // ── Module instances ──────────────────────────────────────────────────────────
 const windowManager = new WindowManager();
 const notificationManager = new NotificationManager();
+let trayManager: TrayManager;
 
 const clientId = process.env.AZURE_CLIENT_ID ?? '21b3a2a7-f91d-4951-a576-d8c55272a3d9';
 const authManager = new AuthManager(clientId);
@@ -306,6 +307,14 @@ async function pollTenant(tenantId: string): Promise<void> {
       chats: updatedChats,
     });
 
+    const ageCutoffIso = settings.chatMaxAgeDays > 0
+      ? new Date(Date.now() - settings.chatMaxAgeDays * 24 * 60 * 60 * 1000).toISOString()
+      : null;
+    const unreadCount = updatedChats.filter(c =>
+      (!ageCutoffIso || !c.lastMessageAt || c.lastMessageAt >= ageCutoffIso) && isUnread(c)
+    ).length;
+    trayManager?.updateUnreadCount(tenantId, unreadCount);
+
     windowManager.sendToRenderer(IPC.PUSH_SYNC_STATUS, { tenantId, status: 'idle' });
 
   } catch (err) {
@@ -360,7 +369,7 @@ app.whenReady().then(() => {
 
   // Create window and tray
   windowManager.create();
-  const trayManager = new TrayManager(
+  trayManager = new TrayManager(
     () => windowManager.toggle(),
     () => {
       scheduler.stopAll();

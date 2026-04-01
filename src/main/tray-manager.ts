@@ -13,19 +13,18 @@ export class TrayManager {
   }
 
   create(): void {
-    const iconPath = path.join(
-      app.isPackaged ? app.getAppPath() : path.join(__dirname, '../../..'),
-      'assets',
-      'tray-icon.png',
-    );
+    const assetsDir = app.isPackaged ? app.getAppPath() : path.join(__dirname, '../../..');
+    // On macOS use the Template image so the OS renders it white on dark menu bars
+    const iconName = process.platform === 'darwin' ? 'tray-iconTemplate.png' : 'tray-icon.png';
+    const iconPath = path.join(assetsDir, 'assets', iconName);
 
     // Fallback to empty image if asset doesn't exist yet (dev mode)
     let icon: Electron.NativeImage;
     try {
       icon = nativeImage.createFromPath(iconPath);
-      // macOS menu bar icons must be 16x16 (or 18x18); resize large source images
       if (process.platform === 'darwin') {
         icon = icon.resize({ width: 16, height: 16 });
+        icon.setTemplateImage(true);
       }
     } catch {
       icon = nativeImage.createEmpty();
@@ -41,6 +40,7 @@ export class TrayManager {
   }
 
   updateUnreadCount(tenantId: string, count: number): void {
+    if (this.unreadCounts.get(tenantId) === count) return;
     this.unreadCounts.set(tenantId, count);
     const total = Array.from(this.unreadCounts.values()).reduce((a, b) => a + b, 0);
 
