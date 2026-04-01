@@ -93,6 +93,13 @@ export function ChatsPage(): React.ReactElement {
               );
               updateChatsForTenant(tenant.id, updated);
             }}
+            onOpenWeb={(webUrl, chat) => {
+              ipc.chats.openInTeams(webUrl, chat.id, chat.tenantId);
+              const updated = (chatsByTenant[tenant.id] ?? []).map(c =>
+                c.id === chat.id ? { ...c, lastReadAt: new Date().toISOString() } : c
+              );
+              updateChatsForTenant(tenant.id, updated);
+            }}
           />
         ))}
       </div>

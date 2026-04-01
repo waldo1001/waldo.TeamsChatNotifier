@@ -7,6 +7,7 @@ import { THEMES, themeIds } from '@shared/themes';
 export function SettingsPage(): React.ReactElement {
   const { tenants, settings, setSettings, deviceCodeInfo, setDeviceCodeInfo, removeTenant } = useAppStore();
   const [addingAccount, setAddingAccount] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     ipc.settings.get().then(setSettings).catch(console.error);
@@ -14,10 +15,13 @@ export function SettingsPage(): React.ReactElement {
 
   async function handleAddAccount() {
     setAddingAccount(true);
+    setAuthError(null);
     try {
       await ipc.auth.startDeviceCode();
     } catch (err) {
-      console.error('Device code flow failed:', err);
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error('Device code flow failed:', msg);
+      setAuthError(msg);
     } finally {
       setDeviceCodeInfo(null);
       setAddingAccount(false);
@@ -81,6 +85,9 @@ export function SettingsPage(): React.ReactElement {
           >
             {addingAccount ? 'Signing in…' : '+ Add Account'}
           </button>
+          {authError && (
+            <p style={styles.errorText}>{authError}</p>
+          )}
         </div>
       </section>
 
@@ -223,6 +230,12 @@ const styles: Record<string, React.CSSProperties> = {
   },
   addSection: {
     marginTop: '12px',
+  },
+  errorText: {
+    fontSize: '11px',
+    color: '#c06060',
+    marginTop: '8px',
+    wordBreak: 'break-word' as const,
   },
   addBtn: {
     backgroundColor: '#2a4a8e',

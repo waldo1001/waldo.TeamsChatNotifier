@@ -35,14 +35,14 @@ function makeChat(id: string, unread = false): Chat {
 describe('TenantSection', () => {
   it('renders the tenant display name', () => {
     render(
-      <TenantSection tenant={mockTenant} chats={[]} currentUserDisplayName="Alice" onOpen={vi.fn()} />,
+      <TenantSection tenant={mockTenant} chats={[]} currentUserDisplayName="Alice" onOpen={vi.fn()} onOpenWeb={vi.fn()} />,
     );
     expect(screen.getByText('Contoso Corp')).toBeInTheDocument();
   });
 
   it('renders the user principal name', () => {
     render(
-      <TenantSection tenant={mockTenant} chats={[]} currentUserDisplayName="Alice" onOpen={vi.fn()} />,
+      <TenantSection tenant={mockTenant} chats={[]} currentUserDisplayName="Alice" onOpen={vi.fn()} onOpenWeb={vi.fn()} />,
     );
     expect(screen.getByText('alice@contoso.com')).toBeInTheDocument();
   });
@@ -55,6 +55,7 @@ describe('TenantSection', () => {
         chats={chats}
         currentUserDisplayName="Bob"
         onOpen={vi.fn()}
+        onOpenWeb={vi.fn()}
       />,
     );
     // The unread badge should show count
@@ -69,15 +70,18 @@ describe('TenantSection', () => {
         chats={chats}
         currentUserDisplayName="Bob"
         onOpen={vi.fn()}
+        onOpenWeb={vi.fn()}
       />,
     );
-    // All 3 chat items should be present
-    expect(screen.getAllByRole('button', { name: /open in teams/i })).toHaveLength(3);
+    // All 3 chat items should have an "Open in Teams app" button
+    expect(screen.getAllByRole('button', { name: /open in teams app/i })).toHaveLength(3);
+    // All 3 chat items should have an "Open in browser" button
+    expect(screen.getAllByRole('button', { name: /open in browser/i })).toHaveLength(3);
   });
 
   it('shows empty state when no chats', () => {
     render(
-      <TenantSection tenant={mockTenant} chats={[]} currentUserDisplayName="Alice" onOpen={vi.fn()} />,
+      <TenantSection tenant={mockTenant} chats={[]} currentUserDisplayName="Alice" onOpen={vi.fn()} onOpenWeb={vi.fn()} />,
     );
     expect(screen.getByText(/no chats/i)).toBeInTheDocument();
   });
@@ -90,17 +94,18 @@ describe('TenantSection', () => {
         chats={chats}
         currentUserDisplayName="Bob"
         onOpen={vi.fn()}
+        onOpenWeb={vi.fn()}
       />,
     );
     // Initially expanded — button is visible
-    expect(screen.getByRole('button', { name: /open in teams/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /open in teams app/i })).toBeInTheDocument();
 
     // Click header to collapse
     fireEvent.click(screen.getByTestId('tenant-header'));
-    expect(screen.queryByRole('button', { name: /open in teams/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /open in teams app/i })).not.toBeInTheDocument();
 
     // Click again to re-expand
     fireEvent.click(screen.getByTestId('tenant-header'));
-    expect(screen.getByRole('button', { name: /open in teams/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /open in teams app/i })).toBeInTheDocument();
   });
 });

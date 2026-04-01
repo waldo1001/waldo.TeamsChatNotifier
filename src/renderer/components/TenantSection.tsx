@@ -7,6 +7,7 @@ interface Props {
   chats: Chat[];
   currentUserDisplayName: string;
   onOpen: (webUrl: string, chat: Chat) => void;
+  onOpenWeb: (webUrl: string, chat: Chat) => void;
 }
 
 function countUnread(chats: Chat[]): number {
@@ -22,6 +23,7 @@ export function TenantSection({
   chats,
   currentUserDisplayName,
   onOpen,
+  onOpenWeb,
 }: Props): React.ReactElement {
   const [expanded, setExpanded] = useState(true);
   const unreadCount = countUnread(chats);
@@ -62,6 +64,7 @@ export function TenantSection({
                 chat={chat}
                 currentUserDisplayName={currentUserDisplayName}
                 onOpen={onOpen}
+                onOpenWeb={onOpenWeb}
               />
             ))
           )}

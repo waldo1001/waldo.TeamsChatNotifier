@@ -21,6 +21,12 @@
           "endsPattern": "ready in"
         }
       }
+    },
+    {
+      "label": "dev:start",
+      "dependsOn": ["dev:renderer", "build:main"],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
     }
   ]
 }

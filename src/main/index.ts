@@ -62,7 +62,7 @@ const store = new Store<StoreSchema>({
 const windowManager = new WindowManager();
 const notificationManager = new NotificationManager();
 
-const clientId = process.env.AZURE_CLIENT_ID ?? '';
+const clientId = process.env.AZURE_CLIENT_ID ?? '21b3a2a7-f91d-4951-a576-d8c55272a3d9';
 const authManager = new AuthManager(clientId);
 
 // ── Database ──────────────────────────────────────────────────────────────────

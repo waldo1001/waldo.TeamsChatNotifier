@@ -30,6 +30,7 @@ describe('ChatListItem', () => {
         chat={makeChat()}
         currentUserDisplayName="Bob Smith"
         onOpen={vi.fn()}
+        onOpenWeb={vi.fn()}
       />,
     );
     // Should show the OTHER person's name, not current user
@@ -42,6 +43,7 @@ describe('ChatListItem', () => {
         chat={makeChat({ chatType: 'group', topic: 'Project Alpha', memberNames: ['Alice', 'Bob', 'Carol'] })}
         currentUserDisplayName="Alice"
         onOpen={vi.fn()}
+        onOpenWeb={vi.fn()}
       />,
     );
     expect(screen.getByText('Project Alpha')).toBeInTheDocument();
@@ -49,7 +51,7 @@ describe('ChatListItem', () => {
 
   it('shows message preview text', () => {
     render(
-      <ChatListItem chat={makeChat()} currentUserDisplayName="Bob Smith" onOpen={vi.fn()} />,
+      <ChatListItem chat={makeChat()} currentUserDisplayName="Bob Smith" onOpen={vi.fn()} onOpenWeb={vi.fn()} />,
     );
     expect(screen.getByText(/Hey, are you free for a call\?/)).toBeInTheDocument();
   });
@@ -60,7 +62,7 @@ describe('ChatListItem', () => {
       lastReadAt: new Date(Date.now() - 60000).toISOString(),
     });
     const { container } = render(
-      <ChatListItem chat={unreadChat} currentUserDisplayName="Bob Smith" onOpen={vi.fn()} />,
+      <ChatListItem chat={unreadChat} currentUserDisplayName="Bob Smith" onOpen={vi.fn()} onOpenWeb={vi.fn()} />,
     );
     expect(container.querySelector('[data-testid="unread-indicator"]')).toBeInTheDocument();
   });
@@ -71,7 +73,7 @@ describe('ChatListItem', () => {
       lastReadAt: new Date(Date.now() - 1000).toISOString(),
     });
     const { container } = render(
-      <ChatListItem chat={readChat} currentUserDisplayName="Bob Smith" onOpen={vi.fn()} />,
+      <ChatListItem chat={readChat} currentUserDisplayName="Bob Smith" onOpen={vi.fn()} onOpenWeb={vi.fn()} />,
     );
     expect(container.querySelector('[data-testid="unread-indicator"]')).not.toBeInTheDocument();
   });
@@ -80,10 +82,23 @@ describe('ChatListItem', () => {
     const chat = makeChat();
     const onOpen = vi.fn();
     render(
-      <ChatListItem chat={chat} currentUserDisplayName="Bob Smith" onOpen={onOpen} />,
+      <ChatListItem chat={chat} currentUserDisplayName="Bob Smith" onOpen={onOpen} onOpenWeb={vi.fn()} />,
     );
-    fireEvent.click(screen.getByRole('button', { name: /open in teams/i }));
+    fireEvent.click(screen.getByRole('button', { name: /open in teams app/i }));
     expect(onOpen).toHaveBeenCalledWith(
+      'https://teams.microsoft.com/l/chat/19%3Aabc/0?tenantId=tenant-001',
+      chat,
+    );
+  });
+
+  it('calls onOpenWeb with the chat webUrl and chat object when browser button clicked', () => {
+    const chat = makeChat();
+    const onOpenWeb = vi.fn();
+    render(
+      <ChatListItem chat={chat} currentUserDisplayName="Bob Smith" onOpen={vi.fn()} onOpenWeb={onOpenWeb} />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /open in browser/i }));
+    expect(onOpenWeb).toHaveBeenCalledWith(
       'https://teams.microsoft.com/l/chat/19%3Aabc/0?tenantId=tenant-001',
       chat,
     );
@@ -91,7 +106,7 @@ describe('ChatListItem', () => {
 
   it('shows a relative timestamp', () => {
     render(
-      <ChatListItem chat={makeChat()} currentUserDisplayName="Bob Smith" onOpen={vi.fn()} />,
+      <ChatListItem chat={makeChat()} currentUserDisplayName="Bob Smith" onOpen={vi.fn()} onOpenWeb={vi.fn()} />,
     );
     // "2m ago" or similar — just check something time-like is present
     expect(screen.getByTestId('chat-timestamp')).toBeInTheDocument();
@@ -103,6 +118,7 @@ describe('ChatListItem', () => {
         chat={makeChat({ chatType: 'group', topic: null, memberNames: ['Alice', 'Bob', 'Carol'] })}
         currentUserDisplayName="Alice"
         onOpen={vi.fn()}
+        onOpenWeb={vi.fn()}
       />,
     );
     // Should show other members: Bob, Carol

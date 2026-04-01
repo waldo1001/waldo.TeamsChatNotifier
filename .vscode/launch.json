@@ -13,12 +13,12 @@
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
-      "args": ["."],
+      "args": [".", "--remote-debugging-port=9222"],
       "cwd": "${workspaceFolder}",
       "envFile": "${workspaceFolder}/.env",
-      "outFiles": ["${workspaceFolder}/dist/main/main/**/*.js"],
+      "outFiles": ["${workspaceFolder}/dist/main/**/*.js"],
       "sourceMaps": true,
-      "preLaunchTask": "build:main",
+      "preLaunchTask": "dev:start",
       "console": "integratedTerminal"
     },
     {

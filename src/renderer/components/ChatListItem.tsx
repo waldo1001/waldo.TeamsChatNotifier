@@ -5,6 +5,7 @@ interface Props {
   chat: Chat;
   currentUserDisplayName: string;
   onOpen: (webUrl: string, chat: Chat) => void;
+  onOpenWeb: (webUrl: string, chat: Chat) => void;
 }
 
 function formatRelativeTime(isoString: string | null): string {
@@ -36,7 +37,7 @@ function isUnread(chat: Chat): boolean {
   return chat.lastMessageAt > chat.lastReadAt;
 }
 
-export function ChatListItem({ chat, currentUserDisplayName, onOpen }: Props): React.ReactElement {
+export function ChatListItem({ chat, currentUserDisplayName, onOpen, onOpenWeb }: Props): React.ReactElement {
   const chatName = getChatName(chat, currentUserDisplayName);
   const unread = isUnread(chat);
 
@@ -73,12 +74,20 @@ export function ChatListItem({ chat, currentUserDisplayName, onOpen }: Props): R
           <div data-testid="unread-indicator" style={styles.unreadDot} />
         )}
         <button
-          aria-label="Open in Teams"
+          aria-label="Open in Teams app"
           style={styles.openBtn}
           onClick={() => onOpen(chat.webUrl ?? '', chat)}
-          title="Open in Teams"
+          title="Open in Teams app"
         >
           ↗
+        </button>
+        <button
+          aria-label="Open in browser"
+          style={styles.webBtn}
+          onClick={() => onOpenWeb(chat.webUrl ?? '', chat)}
+          title="Open in browser"
+        >
+          ⊕
         </button>
       </div>
     </div>
@@ -168,6 +177,16 @@ const styles: Record<string, React.CSSProperties> = {
     border: '1px solid #3a3a6e',
     borderRadius: '4px',
     color: '#8090c0',
+    cursor: 'pointer',
+    fontSize: '14px',
+    padding: '2px 6px',
+    lineHeight: 1,
+  },
+  webBtn: {
+    background: 'none',
+    border: '1px solid #3a5a3a',
+    borderRadius: '4px',
+    color: '#6a9a6a',
     cursor: 'pointer',
     fontSize: '14px',
     padding: '2px 6px',
