@@ -23,6 +23,10 @@ export class TrayManager {
     let icon: Electron.NativeImage;
     try {
       icon = nativeImage.createFromPath(iconPath);
+      // macOS menu bar icons must be 16x16 (or 18x18); resize large source images
+      if (process.platform === 'darwin') {
+        icon = icon.resize({ width: 16, height: 16 });
+      }
     } catch {
       icon = nativeImage.createEmpty();
     }
