@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChatsPage } from './pages/ChatsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { useChats } from './hooks/useChats';
 import { useAppStore } from './store/app-store';
+import { ipc } from './api/ipc-client';
 import { getTheme } from '@shared/themes';
 import type { ThemeColors } from '@shared/themes';
 
@@ -26,9 +27,14 @@ function StatusBar({ colors }: { colors: ThemeColors }): React.ReactElement {
 
 export default function App(): React.ReactElement {
   const [page, setPage] = useState<Page>('chats');
-  const { settings } = useAppStore();
+  const { settings, setSettings } = useAppStore();
   const theme = getTheme(settings.theme);
   const c = theme.colors;
+
+  // Load persisted settings once on startup
+  useEffect(() => {
+    ipc.settings.get().then(setSettings).catch(console.error);
+  }, []);
 
   // Wire up all IPC subscriptions
   useChats();

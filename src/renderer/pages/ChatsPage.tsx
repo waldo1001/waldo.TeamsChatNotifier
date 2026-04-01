@@ -7,12 +7,19 @@ import { sortChatsUnreadFirst, teamsAppLink } from '@shared/deep-links';
 import type { Chat } from '@shared/types';
 
 export function ChatsPage(): React.ReactElement {
-  const { tenants, chatsByTenant, deviceCodeInfo, setDeviceCodeInfo, updateChatsForTenant } = useAppStore();
+  const { tenants, chatsByTenant, settings, deviceCodeInfo, setDeviceCodeInfo, updateChatsForTenant } = useAppStore();
   const [search, setSearch] = useState('');
   const [addingAccount, setAddingAccount] = useState(false);
 
+  const ageCutoffIso = settings.chatMaxAgeDays > 0
+    ? new Date(Date.now() - settings.chatMaxAgeDays * 24 * 60 * 60 * 1000).toISOString()
+    : null;
+
   function filterAndSortChats(chats: Chat[]): Chat[] {
     let result = chats;
+    if (ageCutoffIso) {
+      result = result.filter(c => !c.lastMessageAt || c.lastMessageAt >= ageCutoffIso);
+    }
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter(c => {

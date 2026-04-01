@@ -138,6 +138,21 @@ export function SettingsPage(): React.ReactElement {
             onChange={e => updateSetting('showHiddenChats', e.target.checked)}
           />
         </label>
+
+        <div style={styles.row}>
+          <span style={styles.label}>Hide chats inactive for</span>
+          <select
+            value={settings.chatMaxAgeDays}
+            onChange={e => updateSetting('chatMaxAgeDays', Number(e.target.value))}
+            style={styles.select}
+          >
+            <option value={30}>30 days</option>
+            <option value={50}>50 days</option>
+            <option value={90}>90 days</option>
+            <option value={180}>180 days</option>
+            <option value={0}>Never</option>
+          </select>
+        </div>
       </section>
 
       <section style={styles.section}>

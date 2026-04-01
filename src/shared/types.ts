@@ -62,6 +62,7 @@ export interface AppSettings {
   launchAtLogin: boolean;                   // default: true
   showMessagePreviewInNotification: boolean; // default: true
   showHiddenChats: boolean;                 // default: false
+  chatMaxAgeDays: number;                   // default: 50; 0 = show all
   theme: import('./themes').ThemeId;        // default: 'midnight'
 }
 
@@ -71,6 +72,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   launchAtLogin: true,
   showMessagePreviewInNotification: true,
   showHiddenChats: false,
+  chatMaxAgeDays: 50,
   theme: 'midnight',
 };
 

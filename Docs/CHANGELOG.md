@@ -2,6 +2,14 @@
 
 All notable changes to Teams Chat Notifier are documented here, grouped by ISO week (newest first).
 
+## 1.0.8 — 2026-04-01
+
+### Features
+- **Hide chats inactive for** setting (Settings → Sync): filters out chats with no activity in the last N days (default 50, options 30/50/90/180/Never). Prevents opening broken Teams links for old chats the user is no longer in.
+
+### Fixes
+- App settings are now loaded on startup instead of only when the Settings page is first opened, ensuring the chat age filter is applied immediately on launch.
+
 ## 1.0.7 — 2026-04-01
 
 ### Features
