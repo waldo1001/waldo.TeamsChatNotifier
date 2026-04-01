@@ -16,7 +16,7 @@ export class TrayManager {
     const iconPath = path.join(
       app.isPackaged ? app.getAppPath() : path.join(__dirname, '../../..'),
       'assets',
-      'tray-iconTemplate.png',
+      'tray-icon.png',
     );
 
     // Fallback to empty image if asset doesn't exist yet (dev mode)
