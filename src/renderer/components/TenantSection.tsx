@@ -6,8 +6,10 @@ interface Props {
   tenant: Tenant;
   chats: Chat[];
   currentUserDisplayName: string;
+  isSyncing?: boolean;
   onOpen: (webUrl: string, chat: Chat) => void;
   onOpenWeb: (webUrl: string, chat: Chat) => void;
+  onResync?: () => void;
 }
 
 function countUnread(chats: Chat[]): number {
@@ -22,8 +24,10 @@ export function TenantSection({
   tenant,
   chats,
   currentUserDisplayName,
+  isSyncing = false,
   onOpen,
   onOpenWeb,
+  onResync,
 }: Props): React.ReactElement {
   const [expanded, setExpanded] = useState(true);
   const unreadCount = countUnread(chats);
@@ -46,11 +50,27 @@ export function TenantSection({
             <div style={styles.upn}>{tenant.userPrincipalName}</div>
           </div>
         </div>
-        {unreadCount > 0 && (
-          <span data-testid="unread-badge" style={styles.badge}>
-            {unreadCount}
-          </span>
-        )}
+        <div style={styles.headerRight}>
+          {unreadCount > 0 && (
+            <span data-testid="unread-badge" style={styles.badge}>
+              {unreadCount}
+            </span>
+          )}
+          {onResync && (
+            <button
+              style={{
+                ...styles.resyncBtn,
+                ...(isSyncing ? styles.resyncBtnSpinning : {}),
+              }}
+              onClick={e => { e.stopPropagation(); onResync(); }}
+              disabled={isSyncing}
+              title="Resync account"
+              aria-label="Resync account"
+            >
+              ↺
+            </button>
+          )}
+        </div>
       </div>
 
       {expanded && (
@@ -106,6 +126,11 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '11px',
     color: '#606080',
   },
+  headerRight: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+  },
   badge: {
     backgroundColor: '#6c9fe8',
     color: '#fff',
@@ -115,6 +140,21 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 700,
     minWidth: '18px',
     textAlign: 'center',
+  },
+  resyncBtn: {
+    background: 'none',
+    border: 'none',
+    color: '#606080',
+    cursor: 'pointer',
+    fontSize: '14px',
+    padding: '0 2px',
+    lineHeight: 1,
+    display: 'flex',
+    alignItems: 'center',
+  },
+  resyncBtnSpinning: {
+    opacity: 0.4,
+    cursor: 'default',
   },
   chatList: {},
   empty: {

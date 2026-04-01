@@ -28,6 +28,8 @@ export const ipc = {
       invoke(IPC.CHATS_OPEN_IN_TEAMS, { webUrl, chatId, tenantId }) as Promise<void>,
     forcePoll: (tenantId: string) =>
       invoke(IPC.CHATS_FORCE_POLL, { tenantId }) as Promise<void>,
+    resyncTenant: (tenantId: string) =>
+      invoke(IPC.CHATS_RESYNC_TENANT, { tenantId }) as Promise<{ success: boolean }>,
   },
   settings: {
     get: () =>

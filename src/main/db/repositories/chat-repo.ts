@@ -107,4 +107,8 @@ export class ChatRepository {
       .prepare('UPDATE chats SET last_read_at = ? WHERE id = ? AND tenant_id = ?')
       .run(timestamp, id, tenantId);
   }
+
+  deleteByTenant(tenantId: string): void {
+    this.db.prepare('DELETE FROM chats WHERE tenant_id = ?').run(tenantId);
+  }
 }

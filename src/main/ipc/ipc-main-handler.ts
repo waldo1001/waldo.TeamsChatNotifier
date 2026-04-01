@@ -1,5 +1,6 @@
 import { ipcMain, shell } from 'electron';
 import { IPC } from '../../shared/ipc-channels';
+import { DEFAULT_SETTINGS } from '../../shared/types';
 import type { AppSettings } from '../../shared/types';
 import type { AuthManager } from '../auth/auth-manager';
 import type { TenantRepository } from '../db/repositories/tenant-repo';
@@ -124,14 +125,30 @@ export function registerIpcHandlers(
     scheduler.forceImmediatePoll(payload.tenantId);
   });
 
+  ipcMain.handle(IPC.CHATS_RESYNC_TENANT, async (_event, payload: { tenantId: string }) => {
+    // Wipe all chats for this tenant (messages cascade via FK)
+    chatRepo.deleteByTenant(payload.tenantId);
+    // Clear lastPolledAt timestamps for this tenant so the next poll fetches fresh
+    const lastPolledMap = store.get('lastPolledAt');
+    const cleaned = Object.fromEntries(
+      Object.entries(lastPolledMap).filter(([k]) => !k.startsWith(`${payload.tenantId}:`)),
+    );
+    store.set('lastPolledAt', cleaned);
+    // Push empty chat list to renderer immediately
+    windowManager.sendToRenderer(IPC.PUSH_CHATS_UPDATED, { tenantId: payload.tenantId, chats: [] });
+    // Kick off a fresh poll
+    scheduler.forceImmediatePoll(payload.tenantId);
+    return { success: true };
+  });
+
   // ── Settings handlers ────────────────────────────────────────────────────
 
   ipcMain.handle(IPC.SETTINGS_GET, async () => {
-    return store.get('settings');
+    return { ...DEFAULT_SETTINGS, ...store.get('settings') };
   });
 
   ipcMain.handle(IPC.SETTINGS_SET, async (_event, partial: Partial<AppSettings>) => {
-    const current = store.get('settings');
+    const current = { ...DEFAULT_SETTINGS, ...store.get('settings') };
     const updated = { ...current, ...partial };
     store.set('settings', updated);
 

@@ -7,7 +7,7 @@ import { sortChatsUnreadFirst, teamsAppLink } from '@shared/deep-links';
 import type { Chat } from '@shared/types';
 
 export function ChatsPage(): React.ReactElement {
-  const { tenants, chatsByTenant, settings, deviceCodeInfo, setDeviceCodeInfo, updateChatsForTenant } = useAppStore();
+  const { tenants, chatsByTenant, settings, syncingTenants, deviceCodeInfo, setDeviceCodeInfo, updateChatsForTenant } = useAppStore();
   const [search, setSearch] = useState('');
   const [addingAccount, setAddingAccount] = useState(false);
 
@@ -92,6 +92,8 @@ export function ChatsPage(): React.ReactElement {
             tenant={tenant}
             chats={filterAndSortChats(chatsByTenant[tenant.id] ?? [])}
             currentUserDisplayName={tenant.userPrincipalName.split('@')[0]}
+            isSyncing={syncingTenants.has(tenant.id)}
+            onResync={() => ipc.chats.resyncTenant(tenant.id)}
             onOpen={(webUrl, chat) => {
               ipc.chats.openInTeams(teamsAppLink(webUrl), chat.id, chat.tenantId);
               // Update local state immediately so unread dot disappears

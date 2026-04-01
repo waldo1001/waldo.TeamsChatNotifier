@@ -11,6 +11,7 @@ export const IPC = {
   CHATS_OPEN_IN_TEAMS:      'chats:open-in-teams',
   CHATS_MARK_READ:          'chats:mark-read',
   CHATS_FORCE_POLL:         'chats:force-poll',
+  CHATS_RESYNC_TENANT:      'chats:resync-tenant',
 
   SETTINGS_GET:             'settings:get',
   SETTINGS_SET:             'settings:set',

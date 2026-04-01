@@ -1,6 +1,6 @@
 {
   "name": "teams-chat-notifier",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Monitor Microsoft Teams chats across multiple tenants with native notifications",
   "main": "dist/main/main/index.js",
   "author": "",
