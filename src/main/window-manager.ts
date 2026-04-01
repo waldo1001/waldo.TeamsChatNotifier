@@ -8,7 +8,7 @@ export class WindowManager {
 
   create(): BrowserWindow {
     const iconPath = path.join(
-      app.isPackaged ? process.resourcesPath : path.join(__dirname, '../../..'),
+      app.isPackaged ? app.getAppPath() : path.join(__dirname, '../../..'),
       'assets',
       'icon.png',
     );
