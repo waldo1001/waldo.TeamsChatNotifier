@@ -17,7 +17,7 @@ A cross-platform Electron desktop app that monitors Microsoft Teams chats across
 
 ## Quick Links
 
-- **Repository**: `teams-chat-notifier` (v0.1.0)
+- **Repository**: `teams-chat-notifier` (v1.0.7)
 - **License**: MIT
 - **Platforms**: macOS (x64, arm64), Windows (x64)
 - **Tech Stack**: Electron 35 · TypeScript 5.8 · React 19 · Vite 6 · better-sqlite3 · MSAL Node · Zustand
