@@ -76,6 +76,7 @@ export class TrayManager {
         label: total > 0 ? `Teams Chat Notifier (${total} unread)` : 'Teams Chat Notifier',
         enabled: false,
       },
+      { label: `v${app.getVersion()}`, enabled: false },
       { type: 'separator' },
       { label: 'Open', click: () => this.onShow() },
       { type: 'separator' },

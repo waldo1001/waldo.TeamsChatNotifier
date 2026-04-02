@@ -197,6 +197,8 @@ export function SettingsPage(): React.ReactElement {
           />
         </label>
       </section>
+
+      <div style={styles.versionFooter}>v{__APP_VERSION__}</div>
     </div>
   );
 }
@@ -298,6 +300,12 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
     gap: '8px',
+  },
+  versionFooter: {
+    textAlign: 'center' as const,
+    fontSize: '11px',
+    color: '#404060',
+    padding: '16px',
   },
   themeCard: {
     display: 'flex',
