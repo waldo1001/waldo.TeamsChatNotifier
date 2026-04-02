@@ -127,11 +127,17 @@ async function pollTenant(tenantId: string): Promise<void> {
           if (shouldNotify(rawMsg, tenant.userId, alreadyNotified)) {
             const chat = chatRepo.findById(graphChat.id, tenantId);
             if (chat) {
-              notificationManager.notify(message, chat, tenant, () => {
-                if (chat.webUrl) {
-                  shell.openExternal(teamsAppLink(chat.webUrl));
-                }
-              });
+              // Skip notification if the user already read this message in Teams
+              const msgTs = rawMsg.createdDateTime;
+              const readTs = chat.lastReadAt;
+              const alreadyReadInTeams = !!(msgTs && readTs && msgTs <= readTs);
+              if (!alreadyReadInTeams) {
+                notificationManager.notify(message, chat, tenant, () => {
+                  if (chat.webUrl) {
+                    shell.openExternal(teamsAppLink(chat.webUrl));
+                  }
+                });
+              }
               messageRepo.markNotified(message.id, tenantId);
             }
           }
