@@ -35,7 +35,7 @@ npm run lint
 npm run test
 ```
 
-If the working tree is dirty, ask the user whether to commit or stash first.
+If the working tree is dirty, commit the pending changes first using the commit-push skill procedure (Steps 1–3 only, no push yet), then continue with the release.
 
 ### Step 2: Determine the release type
 
@@ -82,7 +82,7 @@ If there are no tags yet, review all commits.
 ### Step 5: Commit the release
 
 ```bash
-git add package.json Docs/CHANGELOG.md
+git add package.json package-lock.json Docs/CHANGELOG.md
 git commit -m "release: v<new-version>"
 ```
 
