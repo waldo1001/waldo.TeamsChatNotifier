@@ -8,6 +8,8 @@ import type { ChatRepository } from '../db/repositories/chat-repo';
 import type { PollScheduler } from '../polling/poll-scheduler';
 import type { WindowManager } from '../window-manager';
 import Store from 'electron-store';
+import { createGraphClient } from '../graph/graph-client-factory';
+import { ChatsApi } from '../graph/chats-api';
 
 interface StoreSchema {
   settings: AppSettings;
@@ -118,6 +120,23 @@ export function registerIpcHandlers(
     // Mark chat as read when opened
     if (payload?.chatId && payload?.tenantId) {
       chatRepo.markRead(payload.chatId, payload.tenantId, new Date().toISOString());
+    }
+  });
+
+  ipcMain.handle(IPC.CHATS_MARK_READ, async (_event, payload: { chatId: string; tenantId: string }) => {
+    if (!payload?.chatId || !payload?.tenantId) return { success: false };
+    try {
+      const tenant = tenantRepo.findById(payload.tenantId);
+      if (!tenant) return { success: false };
+      const token = await authManager.getAccessTokenForTenant(payload.tenantId);
+      const graphClient = createGraphClient(() => Promise.resolve(token));
+      const chatsApi = new ChatsApi(graphClient);
+      await chatsApi.markAsRead(payload.chatId, tenant.userId, payload.tenantId);
+      chatRepo.markRead(payload.chatId, payload.tenantId, new Date().toISOString());
+      return { success: true };
+    } catch (err) {
+      console.error('[chats] markAsRead failed:', err);
+      return { success: false };
     }
   });
 

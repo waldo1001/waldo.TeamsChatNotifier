@@ -4,7 +4,7 @@ import type { DeviceCodeResponse } from '@azure/msal-common';
 import { createCachePlugin, deleteCacheFile, persistCacheToFile } from './token-cache';
 
 const SCOPES = [
-  'Chat.ReadBasic', 'Chat.Read', 'User.Read', 'offline_access',
+  'Chat.ReadBasic', 'Chat.ReadWrite', 'User.Read', 'offline_access',
   'Team.ReadBasic.All', 'Channel.ReadBasic.All', 'ChannelMessage.Read.All',
 ];
 

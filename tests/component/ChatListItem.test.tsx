@@ -31,6 +31,7 @@ describe('ChatListItem', () => {
         currentUserDisplayName="Bob Smith"
         onOpen={vi.fn()}
         onOpenWeb={vi.fn()}
+        onMarkRead={vi.fn()}
       />,
     );
     // Should show the OTHER person's name, not current user
@@ -44,6 +45,7 @@ describe('ChatListItem', () => {
         currentUserDisplayName="Alice"
         onOpen={vi.fn()}
         onOpenWeb={vi.fn()}
+        onMarkRead={vi.fn()}
       />,
     );
     expect(screen.getByText('Project Alpha')).toBeInTheDocument();
@@ -51,7 +53,7 @@ describe('ChatListItem', () => {
 
   it('shows message preview text', () => {
     render(
-      <ChatListItem chat={makeChat()} currentUserDisplayName="Bob Smith" onOpen={vi.fn()} onOpenWeb={vi.fn()} />,
+      <ChatListItem chat={makeChat()} currentUserDisplayName="Bob Smith" onOpen={vi.fn()} onOpenWeb={vi.fn()} onMarkRead={vi.fn()} />,
     );
     expect(screen.getByText(/Hey, are you free for a call\?/)).toBeInTheDocument();
   });
@@ -61,10 +63,10 @@ describe('ChatListItem', () => {
       lastMessageAt: new Date(Date.now() - 1000).toISOString(),
       lastReadAt: new Date(Date.now() - 60000).toISOString(),
     });
-    const { container } = render(
-      <ChatListItem chat={unreadChat} currentUserDisplayName="Bob Smith" onOpen={vi.fn()} onOpenWeb={vi.fn()} />,
+    render(
+      <ChatListItem chat={unreadChat} currentUserDisplayName="Bob Smith" onOpen={vi.fn()} onOpenWeb={vi.fn()} onMarkRead={vi.fn()} />,
     );
-    expect(container.querySelector('[data-testid="unread-indicator"]')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Mark as read' })).toBeInTheDocument();
   });
 
   it('does not show unread indicator when chat is read', () => {
@@ -72,17 +74,17 @@ describe('ChatListItem', () => {
       lastMessageAt: new Date(Date.now() - 60000).toISOString(),
       lastReadAt: new Date(Date.now() - 1000).toISOString(),
     });
-    const { container } = render(
-      <ChatListItem chat={readChat} currentUserDisplayName="Bob Smith" onOpen={vi.fn()} onOpenWeb={vi.fn()} />,
+    render(
+      <ChatListItem chat={readChat} currentUserDisplayName="Bob Smith" onOpen={vi.fn()} onOpenWeb={vi.fn()} onMarkRead={vi.fn()} />,
     );
-    expect(container.querySelector('[data-testid="unread-indicator"]')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Mark as read' })).not.toBeInTheDocument();
   });
 
   it('calls onOpen with the chat webUrl and chat object when clicked', () => {
     const chat = makeChat();
     const onOpen = vi.fn();
     render(
-      <ChatListItem chat={chat} currentUserDisplayName="Bob Smith" onOpen={onOpen} onOpenWeb={vi.fn()} />,
+      <ChatListItem chat={chat} currentUserDisplayName="Bob Smith" onOpen={onOpen} onOpenWeb={vi.fn()} onMarkRead={vi.fn()} />,
     );
     fireEvent.click(screen.getByRole('button', { name: /open in teams app/i }));
     expect(onOpen).toHaveBeenCalledWith(
@@ -95,7 +97,7 @@ describe('ChatListItem', () => {
     const chat = makeChat();
     const onOpenWeb = vi.fn();
     render(
-      <ChatListItem chat={chat} currentUserDisplayName="Bob Smith" onOpen={vi.fn()} onOpenWeb={onOpenWeb} />,
+      <ChatListItem chat={chat} currentUserDisplayName="Bob Smith" onOpen={vi.fn()} onOpenWeb={onOpenWeb} onMarkRead={vi.fn()} />,
     );
     fireEvent.click(screen.getByRole('button', { name: /open in browser/i }));
     expect(onOpenWeb).toHaveBeenCalledWith(
@@ -106,7 +108,7 @@ describe('ChatListItem', () => {
 
   it('shows a relative timestamp', () => {
     render(
-      <ChatListItem chat={makeChat()} currentUserDisplayName="Bob Smith" onOpen={vi.fn()} onOpenWeb={vi.fn()} />,
+      <ChatListItem chat={makeChat()} currentUserDisplayName="Bob Smith" onOpen={vi.fn()} onOpenWeb={vi.fn()} onMarkRead={vi.fn()} />,
     );
     // "2m ago" or similar — just check something time-like is present
     expect(screen.getByTestId('chat-timestamp')).toBeInTheDocument();
@@ -119,6 +121,7 @@ describe('ChatListItem', () => {
         currentUserDisplayName="Alice"
         onOpen={vi.fn()}
         onOpenWeb={vi.fn()}
+        onMarkRead={vi.fn()}
       />,
     );
     // Should show other members: Bob, Carol

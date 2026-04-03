@@ -36,4 +36,14 @@ export class ChatsApi {
 
     return results;
   }
+
+  /**
+   * Mark all messages in a chat as read for the signed-in user.
+   * Requires Chat.ReadWrite scope.
+   */
+  async markAsRead(chatId: string, userId: string, tenantId: string): Promise<void> {
+    await this.client
+      .api(`/chats/${chatId}/markChatReadForUser`)
+      .post({ user: { id: userId, tenantId } });
+  }
 }

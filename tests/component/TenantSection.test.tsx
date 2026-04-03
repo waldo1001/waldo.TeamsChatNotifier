@@ -35,14 +35,14 @@ function makeChat(id: string, unread = false): Chat {
 describe('TenantSection', () => {
   it('renders the tenant display name', () => {
     render(
-      <TenantSection tenant={mockTenant} chats={[]} currentUserDisplayName="Alice" onOpen={vi.fn()} onOpenWeb={vi.fn()} />,
+      <TenantSection tenant={mockTenant} chats={[]} currentUserDisplayName="Alice" onOpen={vi.fn()} onOpenWeb={vi.fn()} onMarkRead={vi.fn()} />,
     );
     expect(screen.getByText('Contoso Corp')).toBeInTheDocument();
   });
 
   it('renders the user principal name', () => {
     render(
-      <TenantSection tenant={mockTenant} chats={[]} currentUserDisplayName="Alice" onOpen={vi.fn()} onOpenWeb={vi.fn()} />,
+      <TenantSection tenant={mockTenant} chats={[]} currentUserDisplayName="Alice" onOpen={vi.fn()} onOpenWeb={vi.fn()} onMarkRead={vi.fn()} />,
     );
     expect(screen.getByText('alice@contoso.com')).toBeInTheDocument();
   });
@@ -56,6 +56,7 @@ describe('TenantSection', () => {
         currentUserDisplayName="Bob"
         onOpen={vi.fn()}
         onOpenWeb={vi.fn()}
+        onMarkRead={vi.fn()}
       />,
     );
     // The unread badge should show count
@@ -71,6 +72,7 @@ describe('TenantSection', () => {
         currentUserDisplayName="Bob"
         onOpen={vi.fn()}
         onOpenWeb={vi.fn()}
+        onMarkRead={vi.fn()}
       />,
     );
     // All 3 chat items should have an "Open in Teams app" button
@@ -81,7 +83,7 @@ describe('TenantSection', () => {
 
   it('shows empty state when no chats', () => {
     render(
-      <TenantSection tenant={mockTenant} chats={[]} currentUserDisplayName="Alice" onOpen={vi.fn()} onOpenWeb={vi.fn()} />,
+      <TenantSection tenant={mockTenant} chats={[]} currentUserDisplayName="Alice" onOpen={vi.fn()} onOpenWeb={vi.fn()} onMarkRead={vi.fn()} />,
     );
     expect(screen.getByText(/no chats/i)).toBeInTheDocument();
   });
@@ -95,6 +97,7 @@ describe('TenantSection', () => {
         currentUserDisplayName="Bob"
         onOpen={vi.fn()}
         onOpenWeb={vi.fn()}
+        onMarkRead={vi.fn()}
       />,
     );
     // Initially expanded — button is visible

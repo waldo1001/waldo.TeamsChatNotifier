@@ -2,6 +2,16 @@
 
 All notable changes to Teams Chat Notifier are documented here, grouped by ISO week (newest first).
 
+## 1.0.13 — 2026-04-03
+
+### Features
+- **Mark as read** button (`✓`) on each unread chat — marks the chat as read in Teams (clears the Teams badge too, not just the local dot). Requires `Chat.ReadWrite` permission; existing users must sign out and back in once to grant it.
+
+### Dev
+- Scope changed from `Chat.Read` to `Chat.ReadWrite` in `auth-manager.ts`
+- New `ChatsApi.markAsRead(chatId, userId, tenantId)` calling `POST /chats/{id}/markChatReadForUser`
+- New `CHATS_MARK_READ` IPC channel wired end-to-end (main handler → preload → renderer client)
+
 ## 1.0.8 — 2026-04-01
 
 ### Features

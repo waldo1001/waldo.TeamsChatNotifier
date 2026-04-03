@@ -26,6 +26,8 @@ export const ipc = {
       invoke(IPC.CHATS_GET_ALL) as Promise<{ tenants: Tenant[]; chatsByTenant: Record<string, Chat[]> }>,
     openInTeams: (webUrl: string, chatId?: string, tenantId?: string) =>
       invoke(IPC.CHATS_OPEN_IN_TEAMS, { webUrl, chatId, tenantId }) as Promise<void>,
+    markRead: (chatId: string, tenantId: string) =>
+      invoke(IPC.CHATS_MARK_READ, { chatId, tenantId }) as Promise<{ success: boolean }>,
     forcePoll: (tenantId: string) =>
       invoke(IPC.CHATS_FORCE_POLL, { tenantId }) as Promise<void>,
     resyncTenant: (tenantId: string) =>

@@ -7,6 +7,7 @@ interface Props {
   currentUserDisplayName: string;
   onOpen: (webUrl: string, chat: Chat) => void;
   onOpenWeb: (webUrl: string, chat: Chat) => void;
+  onMarkRead: (chat: Chat) => void;
 }
 
 function formatRelativeTime(isoString: string | null): string {
@@ -33,7 +34,7 @@ function getChatName(chat: Chat, currentUserDisplayName: string): string {
 }
 
 
-export function ChatListItem({ chat, currentUserDisplayName, onOpen, onOpenWeb }: Props): React.ReactElement {
+export function ChatListItem({ chat, currentUserDisplayName, onOpen, onOpenWeb, onMarkRead }: Props): React.ReactElement {
   const chatName = getChatName(chat, currentUserDisplayName);
   const unread = isUnread(chat);
 
@@ -67,7 +68,14 @@ export function ChatListItem({ chat, currentUserDisplayName, onOpen, onOpenWeb }
 
       <div style={styles.actions}>
         {unread && (
-          <div data-testid="unread-indicator" style={styles.unreadDot} />
+          <button
+            aria-label="Mark as read"
+            style={styles.markReadBtn}
+            onClick={() => onMarkRead(chat)}
+            title="Mark as read"
+          >
+            ✓
+          </button>
         )}
         <button
           aria-label="Open in Teams app"
@@ -162,11 +170,15 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '4px',
     flexShrink: 0,
   },
-  unreadDot: {
-    width: '8px',
-    height: '8px',
-    borderRadius: '50%',
-    backgroundColor: '#6c9fe8',
+  markReadBtn: {
+    background: 'none',
+    border: '1px solid #2a4a6e',
+    borderRadius: '4px',
+    color: '#6c9fe8',
+    cursor: 'pointer',
+    fontSize: '12px',
+    padding: '2px 6px',
+    lineHeight: 1,
   },
   openBtn: {
     background: 'none',

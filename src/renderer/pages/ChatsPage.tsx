@@ -109,6 +109,14 @@ export function ChatsPage(): React.ReactElement {
               );
               updateChatsForTenant(tenant.id, updated);
             }}
+            onMarkRead={(chat) => {
+              // Optimistic update — remove unread indicator immediately
+              const updated = (chatsByTenant[tenant.id] ?? []).map(c =>
+                c.id === chat.id ? { ...c, lastReadAt: new Date().toISOString() } : c
+              );
+              updateChatsForTenant(tenant.id, updated);
+              ipc.chats.markRead(chat.id, chat.tenantId);
+            }}
           />
         ))}
       </div>

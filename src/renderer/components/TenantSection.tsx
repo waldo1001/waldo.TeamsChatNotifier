@@ -10,6 +10,7 @@ interface Props {
   isSyncing?: boolean;
   onOpen: (webUrl: string, chat: Chat) => void;
   onOpenWeb: (webUrl: string, chat: Chat) => void;
+  onMarkRead: (chat: Chat) => void;
   onResync?: () => void;
 }
 
@@ -24,6 +25,7 @@ export function TenantSection({
   isSyncing = false,
   onOpen,
   onOpenWeb,
+  onMarkRead,
   onResync,
 }: Props): React.ReactElement {
   const [expanded, setExpanded] = useState(true);
@@ -82,6 +84,7 @@ export function TenantSection({
                 currentUserDisplayName={currentUserDisplayName}
                 onOpen={onOpen}
                 onOpenWeb={onOpenWeb}
+                onMarkRead={onMarkRead}
               />
             ))
           )}
