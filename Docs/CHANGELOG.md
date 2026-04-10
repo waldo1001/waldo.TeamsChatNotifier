@@ -2,6 +2,11 @@
 
 All notable changes to Teams Chat Notifier are documented here, grouped by ISO week (newest first).
 
+## 1.1.0 — 2026-04-10
+
+### Features
+- **Click-to-message navigation** — clicking a notification now deep-links to the exact message in the Teams desktop app (via `msteams://` protocol) instead of just opening the chat or channel. Works for chat messages, channel messages, and thread replies.
+
 ## 1.0.13 — 2026-04-03
 
 ### Features
