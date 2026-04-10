@@ -34,6 +34,30 @@ export function messageDeepLink(
 }
 
 /**
+ * Deep link to jump to a specific message within a Teams channel.
+ * For replies, pass the thread root message ID as parentMessageId.
+ */
+export function channelMessageDeepLink(
+  channelId: string,
+  messageId: string,
+  tenantId: string,
+  teamId: string,
+  parentMessageId?: string,
+): string {
+  if (!channelId) throw new Error('channelId is required');
+  if (!messageId) throw new Error('messageId is required');
+  if (!tenantId) throw new Error('tenantId is required');
+  if (!teamId) throw new Error('teamId is required');
+  const encodedChannelId = encodeURIComponent(channelId);
+  const context = encodeURIComponent(JSON.stringify({ contextType: 'channel' }));
+  let url = `https://teams.microsoft.com/l/message/${encodedChannelId}/${messageId}?groupId=${teamId}&tenantId=${tenantId}&context=${context}`;
+  if (parentMessageId) {
+    url += `&parentMessageId=${parentMessageId}`;
+  }
+  return url;
+}
+
+/**
  * Strip HTML tags from a message body for use in notifications and previews.
  */
 export function stripHtml(html: string): string {

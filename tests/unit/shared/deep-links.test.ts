@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { chatDeepLink, messageDeepLink, stripHtml, truncate, teamsAppLink, sortChatsUnreadFirst } from '../../../src/shared/deep-links';
+import { chatDeepLink, messageDeepLink, channelMessageDeepLink, stripHtml, truncate, teamsAppLink, sortChatsUnreadFirst } from '../../../src/shared/deep-links';
 
 describe('chatDeepLink', () => {
   it('builds a valid Teams chat deep link', () => {
@@ -35,6 +35,31 @@ describe('messageDeepLink', () => {
     expect(() => messageDeepLink('19:abc@thread.v2', '', 'tenant-1')).toThrow(
       'messageId is required',
     );
+  });
+});
+
+describe('channelMessageDeepLink', () => {
+  it('builds a valid Teams channel message deep link', () => {
+    const url = channelMessageDeepLink('19:channel@thread.tacv2', '1616964509832', 'tenant-guid', 'team-guid');
+    expect(url).toContain('https://teams.microsoft.com/l/message/');
+    expect(url).toContain('1616964509832');
+    expect(url).toContain('groupId=team-guid');
+    expect(url).toContain('tenantId=tenant-guid');
+    expect(url).toContain('contextType');
+    expect(url).not.toContain('parentMessageId');
+  });
+
+  it('includes parentMessageId for replies', () => {
+    const url = channelMessageDeepLink('19:channel@thread.tacv2', 'reply-123', 'tenant-guid', 'team-guid', 'root-msg-456');
+    expect(url).toContain('parentMessageId=root-msg-456');
+  });
+
+  it('throws when channelId is empty', () => {
+    expect(() => channelMessageDeepLink('', 'msg-1', 'tenant-1', 'team-1')).toThrow('channelId is required');
+  });
+
+  it('throws when teamId is empty', () => {
+    expect(() => channelMessageDeepLink('19:ch@thread.tacv2', 'msg-1', 'tenant-1', '')).toThrow('teamId is required');
   });
 });
 

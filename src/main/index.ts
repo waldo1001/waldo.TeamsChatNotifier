@@ -29,7 +29,7 @@ import {
 } from './polling/poll-worker';
 import { DEFAULT_SETTINGS } from '../shared/types';
 import { IPC } from '../shared/ipc-channels';
-import { isUnread, teamsAppLink } from '../shared/deep-links';
+import { isUnread, teamsAppLink, messageDeepLink, channelMessageDeepLink } from '../shared/deep-links';
 import type { AppSettings } from '../shared/types';
 
 // ── App single-instance lock ────────────────────────────────────────────────
@@ -133,9 +133,8 @@ async function pollTenant(tenantId: string): Promise<void> {
               const alreadyReadInTeams = !!(msgTs && readTs && msgTs <= readTs);
               if (!alreadyReadInTeams) {
                 notificationManager.notify(message, chat, tenant, () => {
-                  if (chat.webUrl) {
-                    shell.openExternal(teamsAppLink(chat.webUrl));
-                  }
+                  const url = messageDeepLink(chat.id, message.id, tenantId);
+                  shell.openExternal(teamsAppLink(url));
                 });
               }
               messageRepo.markNotified(message.id, tenantId);
@@ -221,9 +220,13 @@ async function pollTenant(tenantId: string): Promise<void> {
                   },
                   tenant,
                   () => {
-                    if (graphChannel.webUrl) {
-                      shell.openExternal(graphChannel.webUrl);
-                    }
+                    const url = channelMessageDeepLink(
+                      graphChannel.id,
+                      rawMsg.id,
+                      tenantId,
+                      graphTeam.id,
+                    );
+                    shell.openExternal(teamsAppLink(url));
                   },
                 );
                 messageRepo.markNotified(message.id, tenantId);
@@ -271,9 +274,14 @@ async function pollTenant(tenantId: string): Promise<void> {
                       },
                       tenant,
                       () => {
-                        if (graphChannel.webUrl) {
-                          shell.openExternal(graphChannel.webUrl);
-                        }
+                        const url = channelMessageDeepLink(
+                          graphChannel.id,
+                          rawReply.id,
+                          tenantId,
+                          graphTeam.id,
+                          rawMsg.id,
+                        );
+                        shell.openExternal(teamsAppLink(url));
                       },
                     );
                     messageRepo.markNotified(reply.id, tenantId);
