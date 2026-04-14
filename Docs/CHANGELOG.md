@@ -2,6 +2,11 @@
 
 All notable changes to Teams Chat Notifier are documented here, grouped by ISO week (newest first).
 
+## 1.1.2 — 2026-04-14
+
+### Features
+- **Per-tenant sync error banner** — when a sync fails, the error message now appears directly below the affected account's header instead of only in the global status bar. Visible even when the section is collapsed; auto-clears on next successful sync.
+
 ## 1.1.1 — 2026-04-14
 
 ### Fixes
