@@ -111,4 +111,35 @@ describe('TenantSection', () => {
     fireEvent.click(screen.getByTestId('tenant-header'));
     expect(screen.getByRole('button', { name: /open in teams app/i })).toBeInTheDocument();
   });
+
+  it('shows error banner when errorMessage is provided', () => {
+    render(
+      <TenantSection
+        tenant={mockTenant}
+        chats={[]}
+        currentUserDisplayName="Alice"
+        errorMessage="Token expired. Please sign out and back in."
+        onOpen={vi.fn()}
+        onOpenWeb={vi.fn()}
+        onMarkRead={vi.fn()}
+      />,
+    );
+    const banner = screen.getByTestId('sync-error-banner');
+    expect(banner).toBeInTheDocument();
+    expect(banner).toHaveTextContent('Token expired');
+  });
+
+  it('does not show error banner when no errorMessage', () => {
+    render(
+      <TenantSection
+        tenant={mockTenant}
+        chats={[]}
+        currentUserDisplayName="Alice"
+        onOpen={vi.fn()}
+        onOpenWeb={vi.fn()}
+        onMarkRead={vi.fn()}
+      />,
+    );
+    expect(screen.queryByTestId('sync-error-banner')).not.toBeInTheDocument();
+  });
 });

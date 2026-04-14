@@ -8,6 +8,7 @@ interface Props {
   chats: Chat[];
   currentUserDisplayName: string;
   isSyncing?: boolean;
+  errorMessage?: string;
   onOpen: (webUrl: string, chat: Chat) => void;
   onOpenWeb: (webUrl: string, chat: Chat) => void;
   onMarkRead: (chat: Chat) => void;
@@ -23,6 +24,7 @@ export function TenantSection({
   chats,
   currentUserDisplayName,
   isSyncing = false,
+  errorMessage,
   onOpen,
   onOpenWeb,
   onMarkRead,
@@ -71,6 +73,12 @@ export function TenantSection({
           )}
         </div>
       </div>
+
+      {errorMessage && (
+        <div data-testid="sync-error-banner" style={styles.errorBanner} title={errorMessage}>
+          ⚠ {errorMessage}
+        </div>
+      )}
 
       {expanded && (
         <div style={styles.chatList}>
@@ -157,6 +165,16 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'default',
   },
   chatList: {},
+  errorBanner: {
+    padding: '6px 14px',
+    fontSize: '11px',
+    color: '#e8a0a0',
+    backgroundColor: '#2a1020',
+    borderBottom: '1px solid #3a1830',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
   empty: {
     padding: '16px',
     textAlign: 'center',
