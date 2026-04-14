@@ -2,6 +2,11 @@
 
 All notable changes to Teams Chat Notifier are documented here, grouped by ISO week (newest first).
 
+## 1.1.1 — 2026-04-14
+
+### Fixes
+- **Sync error details now visible** — the status bar previously showed a generic "⚠ Sync error" message. It now surfaces the actual error text (per tenant) so you can tell what's going wrong, with the full message available on hover.
+
 ## 1.1.0 — 2026-04-10
 
 ### Features

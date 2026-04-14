@@ -12,14 +12,35 @@ type Page = 'chats' | 'settings';
 function StatusBar({ colors }: { colors: ThemeColors }): React.ReactElement {
   const { tenants, syncingTenants, errorTenants } = useAppStore();
   const syncing = syncingTenants.size > 0;
-  const hasErrors = Object.keys(errorTenants).length > 0;
+  const errorEntries = Object.entries(errorTenants);
+  const hasErrors = errorEntries.length > 0;
 
   if (tenants.length === 0) return <></>;
+
+  const tenantName = (id: string): string =>
+    tenants.find(t => t.id === id)?.displayName ?? id;
+
+  const errorSummary = errorEntries
+    .map(([id, msg]) => `${tenantName(id)}: ${msg}`)
+    .join(' • ');
 
   return (
     <div style={{ padding: '3px 14px', fontSize: '11px', backgroundColor: colors.statusBarBg, borderBottom: `1px solid ${colors.statusBarBorder}`, flexShrink: 0 }}>
       {syncing && <span style={{ color: colors.navActiveText }}>⟳ Syncing…</span>}
-      {hasErrors && !syncing && <span style={{ color: '#c06060' }}>⚠ Sync error</span>}
+      {hasErrors && !syncing && (
+        <span
+          title={errorSummary}
+          style={{
+            color: '#c06060',
+            display: 'block',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          ⚠ {errorSummary}
+        </span>
+      )}
       {!syncing && !hasErrors && <span style={{ color: '#507050' }}>● Live</span>}
     </div>
   );
